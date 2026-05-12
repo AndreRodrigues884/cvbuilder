@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Plus, FileText } from 'lucide-react'
+import { Plus, FileText, Download } from 'lucide-react'
 
 export default async function CVListPage() {
   const supabase = await createClient()
@@ -52,9 +52,17 @@ export default async function CVListPage() {
                   ATS: {cv.ats_score || '-'}
                 </div>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 mb-4">
                 Criado em {new Date(cv.created_at).toLocaleDateString('pt-PT')}
               </p>
+              <a
+                href={`/api/cv/${cv.id}/export`}
+                target="_blank"
+                className="flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-2 hover:border-slate-400 transition-colors w-fit"
+              >
+                <Download size={13} />
+                Exportar PDF
+              </a>
             </div>
           ))}
         </div>
