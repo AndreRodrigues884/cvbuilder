@@ -1,22 +1,47 @@
-import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import { Plus, FileText, Download, Pencil } from 'lucide-react'
+'use client'
 
-export default async function CVListPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: cvs } = await supabase
-    .from('cvs')
-    .select('*')
-    .eq('user_id', user!.id)
-    .order('created_at', { ascending: false })
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Plus, FileText, Download, Pencil, Trash2 } from 'lucide-react'
+
+interface CV {
+  id: string
+  title: string
+  full_name: string
+  ats_score: number | null
+  created_at: string
+}
+
+export default function CVListPage() {
+  const [cvs, setCvs] = useState<CV[]>([])
+  const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchCVs()
+  }, [])
+
+  async function fetchCVs() {
+    const res = await fetch('/api/cv')
+    const data = await res.json()
+    setCvs(data.cvs || [])
+    setLoading(false)
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Tens a certeza que queres apagar este CV?')) return
+    setDeleting(id)
+    await fetch(`/api/cv/${id}`, { method: 'DELETE' })
+    setCvs(prev => prev.filter(cv => cv.id !== id))
+    setDeleting(null)
+  }
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Os meus CVs</h1>
-          <p className="text-slate-500 mt-1">{cvs?.length || 0} CV{cvs?.length !== 1 ? 's' : ''} criado{cvs?.length !== 1 ? 's' : ''}</p>
+          <p className="text-slate-500 mt-1">{cvs.length} CV{cvs.length !== 1 ? 's' : ''} criado{cvs.length !== 1 ? 's' : ''}</p>
         </div>
         <Link
           href="/cv/new"
@@ -27,7 +52,9 @@ export default async function CVListPage() {
         </Link>
       </div>
 
-      {cvs?.length === 0 ? (
+      {loading ? (
+        <p className="text-slate-400 text-sm">A carregar...</p>
+      ) : cvs.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-slate-200 rounded-2xl">
           <FileText size={40} className="text-slate-300 mx-auto mb-4" />
           <h3 className="text-slate-600 font-medium mb-1">Ainda não tens CVs</h3>
@@ -41,7 +68,7 @@ export default async function CVListPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {cvs?.map(cv => (
+          {cvs.map(cv => (
             <div key={cv.id} className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-slate-300 transition-colors">
               <div className="flex items-start justify-between mb-3">
                 <div>
@@ -66,11 +93,19 @@ export default async function CVListPage() {
                 <a
                   href={`/api/cv/${cv.id}/export`}
                   target="_blank"
-                  className="flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate.900 border border-slate-200 rounded-lg px-3 py-2 hover:border-slate-400 transition-colors"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-2 hover:border-slate-400 transition-colors"
                 >
                   <Download size={13} />
                   Exportar PDF
                 </a>
+                <button
+                  onClick={() => handleDelete(cv.id)}
+                  disabled={deleting === cv.id}
+                  className="flex items-center gap-2 text-xs font-medium text-red-500 hover:text-red-700 border border-red-100 hover:border-red-300 rounded-lg px-3 py-2 transition-colors disabled:opacity-50 ml-auto"
+                >
+                  <Trash2 size={13} />
+                  {deleting === cv.id ? 'A apagar...' : 'Apagar'}
+                </button>
               </div>
             </div>
           ))}
