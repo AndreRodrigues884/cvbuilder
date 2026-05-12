@@ -97,7 +97,7 @@ export default function ApplicationsPage() {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
+          className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:opacity-90 transition-opacity shadow-lg shadow-rose-200"
         >
           <Plus size={16} />
           Nova candidatura
@@ -107,13 +107,16 @@ export default function ApplicationsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Total', value: stats.total, color: 'text-slate-900' },
-          { label: 'Entrevistas', value: stats.interview, color: 'text-yellow-600' },
-          { label: 'Ofertas', value: stats.offer, color: 'text-green-600' },
-          { label: 'Rejeitadas', value: stats.rejected, color: 'text-red-600' },
+          { label: 'Total', value: stats.total, gradient: 'from-slate-500 to-slate-700', shadow: 'shadow-slate-200' },
+          { label: 'Entrevistas', value: stats.interview, gradient: 'from-yellow-500 to-amber-500', shadow: 'shadow-yellow-200' },
+          { label: 'Ofertas', value: stats.offer, gradient: 'from-green-500 to-emerald-500', shadow: 'shadow-green-200' },
+          { label: 'Rejeitadas', value: stats.rejected, gradient: 'from-red-500 to-rose-500', shadow: 'shadow-red-200' },
         ].map(stat => (
-          <div key={stat.label} className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+          <div key={stat.label} className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md transition-all">
+            <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-3 shadow-lg ${stat.shadow}`}>
+              <span className="text-white text-xs font-bold">{stat.value}</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
             <p className="text-sm text-slate-500 mt-0.5">{stat.label}</p>
           </div>
         ))}
@@ -128,9 +131,10 @@ export default function ApplicationsPage() {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              filter === f.key ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors ${filter === f.key
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+              }`}
           >
             {f.label}
           </button>
@@ -139,35 +143,35 @@ export default function ApplicationsPage() {
 
       {/* Form */}
       {showForm && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-          <h2 className="font-semibold text-slate-900 mb-4">Nova candidatura</h2>
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6 shadow-sm">
+          <h2 className="font-semibold text-slate-900 mb-5">Nova candidatura</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Empresa *</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">Empresa *</label>
               <input
                 type="text"
                 value={form.company}
                 onChange={e => setForm(p => ({ ...p, company: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                 placeholder="Ex: Google"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Cargo *</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">Cargo *</label>
               <input
                 type="text"
                 value={form.job_title}
                 onChange={e => setForm(p => ({ ...p, job_title: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                 placeholder="Ex: Frontend Developer"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Estado</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">Estado</label>
               <select
                 value={form.status}
                 onChange={e => setForm(p => ({ ...p, status: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
               >
                 {Object.entries(statusConfig).map(([key, val]) => (
                   <option key={key} value={key}>{val.label}</option>
@@ -175,46 +179,46 @@ export default function ApplicationsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Data de candidatura</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">Data de candidatura</label>
               <input
                 type="date"
                 value={form.applied_at}
                 onChange={e => setForm(p => ({ ...p, applied_at: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Link da vaga</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">Link da vaga</label>
               <input
                 type="url"
                 value={form.job_url}
                 onChange={e => setForm(p => ({ ...p, job_url: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                 placeholder="https://..."
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Notas</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">Notas</label>
               <input
                 type="text"
                 value={form.notes}
                 onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                 placeholder="Notas adicionais..."
               />
             </div>
           </div>
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="flex justify-end gap-2 mt-5">
             <button
               onClick={() => { setShowForm(false); setForm(emptyForm) }}
-              className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900"
+              className="px-4 py-2.5 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={handleAdd}
               disabled={saving || !form.company || !form.job_title}
-              className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+              className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity shadow-lg shadow-rose-200"
             >
               {saving ? 'A guardar...' : 'Guardar'}
             </button>
@@ -226,7 +230,7 @@ export default function ApplicationsPage() {
       {loading ? (
         <p className="text-slate-400 text-sm">A carregar...</p>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-slate-200 rounded-2xl">
+        <div className="text-center py-20 border border-dashed border-slate-200 rounded-2xl bg-white">
           <ClipboardList size={40} className="text-slate-300 mx-auto mb-4" />
           <h3 className="text-slate-600 font-medium mb-1">Sem candidaturas</h3>
           <p className="text-slate-400 text-sm">Adiciona a tua primeira candidatura</p>
@@ -234,12 +238,15 @@ export default function ApplicationsPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map(app => (
-            <div key={app.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
+            <div key={app.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-4 hover:shadow-sm transition-all hover:-translate-y-0.5">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-rose-200">
+                <span className="text-white text-xs font-bold">{app.company.charAt(0).toUpperCase()}</span>
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <p className="font-semibold text-slate-900 text-sm">{app.job_title}</p>
-                  <span className="text-slate-400">·</span>
-                  <p className="text-sm text-slate-600">{app.company}</p>
+                  <span className="text-slate-300">·</span>
+                  <p className="text-sm text-slate-500">{app.company}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <p className="text-xs text-slate-400">
@@ -251,14 +258,14 @@ export default function ApplicationsPage() {
 
               <div className="flex items-center gap-2">
                 {app.job_url && (
-                  <a href={app.job_url} target="_blank" className="text-slate-400 hover:text-slate-700 transition-colors">
-                    <ExternalLink size={15} />
+                  <a href={app.job_url} target="_blank" className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+                    <ExternalLink size={14} className="text-slate-500" />
                   </a>
                 )}
                 <select
                   value={app.status}
                   onChange={e => handleStatusChange(app.id, e.target.value)}
-                  className={`text-xs font-medium px-2.5 py-1.5 rounded-full border cursor-pointer focus:outline-none ${statusConfig[app.status].color}`}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-full border cursor-pointer focus:outline-none ${statusConfig[app.status].color}`}
                 >
                   {Object.entries(statusConfig).map(([key, val]) => (
                     <option key={key} value={key}>{val.label}</option>
@@ -266,9 +273,9 @@ export default function ApplicationsPage() {
                 </select>
                 <button
                   onClick={() => handleDelete(app.id)}
-                  className="text-slate-300 hover:text-red-500 transition-colors"
+                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-red-50 flex items-center justify-center transition-colors group"
                 >
-                  <Trash2 size={15} />
+                  <Trash2 size={14} className="text-slate-400 group-hover:text-red-500 transition-colors" />
                 </button>
               </div>
             </div>

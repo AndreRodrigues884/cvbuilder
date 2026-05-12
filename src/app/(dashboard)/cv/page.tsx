@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, FileText, Download, Pencil, Trash2 } from 'lucide-react'
+import ConfirmModal from '@/components/ui/confirm-modal'
 
 interface CV {
   id: string
@@ -15,7 +16,8 @@ interface CV {
 export default function CVListPage() {
   const [cvs, setCvs] = useState<CV[]>([])
   const [loading, setLoading] = useState(true)
-  const [deleting, setDeleting] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchCVs()
@@ -28,12 +30,13 @@ export default function CVListPage() {
     setLoading(false)
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Tens a certeza que queres apagar este CV?')) return
-    setDeleting(id)
-    await fetch(`/api/cv/${id}`, { method: 'DELETE' })
-    setCvs(prev => prev.filter(cv => cv.id !== id))
-    setDeleting(null)
+  async function handleDelete() {
+    if (!deleteId) return
+    setDeleting(true)
+    await fetch(`/api/cv/${deleteId}`, { method: 'DELETE' })
+    setCvs(prev => prev.filter(cv => cv.id !== deleteId))
+    setDeleting(false)
+    setDeleteId(null)
   }
 
   return (
@@ -99,18 +102,27 @@ export default function CVListPage() {
                   Exportar PDF
                 </a>
                 <button
-                  onClick={() => handleDelete(cv.id)}
-                  disabled={deleting === cv.id}
-                  className="flex items-center gap-2 text-xs font-medium text-red-500 hover:text-red-700 border border-red-100 hover:border-red-300 rounded-lg px-3 py-2 transition-colors disabled:opacity-50 ml-auto"
+                  onClick={() => setDeleteId(cv.id)}
+                  className="flex items-center gap-2 text-xs font-medium text-red-500 hover:text-red-700 border border-red-100 hover:border-red-300 rounded-lg px-3 py-2 transition-colors ml-auto"
                 >
                   <Trash2 size={13} />
-                  {deleting === cv.id ? 'A apagar...' : 'Apagar'}
+                  Apagar
                 </button>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!deleteId}
+        title="Apagar CV"
+        description="Tens a certeza que queres apagar este CV? Esta ação não pode ser desfeita."
+        confirmLabel="Apagar CV"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        loading={deleting}
+      />
     </div>
   )
 }
