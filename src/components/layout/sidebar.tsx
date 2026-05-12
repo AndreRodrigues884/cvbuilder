@@ -9,7 +9,8 @@ import {
   Briefcase,
   Compass,
   MessageSquare,
-  LogOut
+  LogOut,
+  ClipboardList
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'Job Match', href: '/job-match', icon: Briefcase },
   { name: 'Career Copilot', href: '/career-copilot', icon: Compass },
   { name: 'Interview Prep', href: '/interview-prep', icon: MessageSquare },
+  { name: 'Candidaturas', href: '/applications', icon: ClipboardList },
 ]
 
 export default function Sidebar() {
