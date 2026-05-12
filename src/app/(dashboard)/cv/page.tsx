@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Plus, FileText, Download } from 'lucide-react'
+import { Plus, FileText, Download, Pencil } from 'lucide-react'
 
 export default async function CVListPage() {
   const supabase = await createClient()
@@ -55,14 +55,23 @@ export default async function CVListPage() {
               <p className="text-xs text-slate-400 mb-4">
                 Criado em {new Date(cv.created_at).toLocaleDateString('pt-PT')}
               </p>
-              <a
-                href={`/api/cv/${cv.id}/export`}
-                target="_blank"
-                className="flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-2 hover:border-slate-400 transition-colors w-fit"
-              >
-                <Download size={13} />
-                Exportar PDF
-              </a>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/cv/${cv.id}`}
+                  className="flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-2 hover:border-slate-400 transition-colors"
+                >
+                  <Pencil size={13} />
+                  Editar
+                </Link>
+                <a
+                  href={`/api/cv/${cv.id}/export`}
+                  target="_blank"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate.900 border border-slate-200 rounded-lg px-3 py-2 hover:border-slate-400 transition-colors"
+                >
+                  <Download size={13} />
+                  Exportar PDF
+                </a>
+              </div>
             </div>
           ))}
         </div>

@@ -34,6 +34,26 @@ export interface Language {
   level: 'basic' | 'intermediate' | 'advanced' | 'native'
 }
 
+export interface Project {
+  id: string
+  name: string
+  description: string
+  technologies: string[]
+  url: string
+  github_url: string
+  start_date: string
+  end_date: string
+}
+
+export interface Certification {
+  id: string
+  name: string
+  issuer: string
+  issue_date: string
+  expiry_date: string
+  credential_url: string
+}
+
 export interface CVData {
   title: string
   full_name: string
@@ -48,4 +68,6 @@ export interface CVData {
   education: Education[]
   skills: Skill[]
   languages: Language[]
+  projects: Project[]
+  certifications: Certification[]
 }

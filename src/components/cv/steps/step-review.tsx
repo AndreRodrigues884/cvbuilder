@@ -66,6 +66,36 @@ export default function StepReview() {
       )
     }
 
+    if (cvData.projects.length > 0) {
+      await supabase.from('cv_projects').insert(
+        cvData.projects.map((p, i) => ({
+          cv_id: cv.id,
+          name: p.name,
+          description: p.description,
+          technologies: p.technologies,
+          url: p.url,
+          github_url: p.github_url,
+          start_date: p.start_date || null,
+          end_date: p.end_date || null,
+          order_index: i,
+        }))
+      )
+    }
+
+    if (cvData.certifications.length > 0) {
+      await supabase.from('cv_certifications').insert(
+        cvData.certifications.map((c, i) => ({
+          cv_id: cv.id,
+          name: c.name,
+          issuer: c.issuer,
+          issue_date: c.issue_date || null,
+          expiry_date: c.expiry_date || null,
+          credential_url: c.credential_url,
+          order_index: i,
+        }))
+      )
+    }
+
     reset()
     router.push('/cv')
   }
@@ -122,6 +152,26 @@ export default function StepReview() {
           </div>
         </div>
 
+        <div className="rounded-xl border border-slate-200 p-4">
+          <h3 className="text-sm font-semibold text-slate-800 mb-2">Projetos ({cvData.projects.length})</h3>
+          {cvData.projects.length === 0
+            ? <p className="text-sm text-slate-400">Nenhum projeto adicionado</p>
+            : cvData.projects.map(p => (
+              <p key={p.id} className="text-sm text-slate-700">{p.name}</p>
+            ))
+          }
+        </div>
+
+        <div className="rounded-xl border border-slate-200 p-4">
+          <h3 className="text-sm font-semibold text-slate-800 mb-2">Certificações ({cvData.certifications.length})</h3>
+          {cvData.certifications.length === 0
+            ? <p className="text-sm text-slate-400">Nenhuma certificação adicionada</p>
+            : cvData.certifications.map(c => (
+              <p key={c.id} className="text-sm text-slate-700">{c.name} — {c.issuer}</p>
+            ))
+          }
+        </div>
+
         {/* Línguas */}
         <div className="rounded-xl border border-slate-200 p-4">
           <h3 className="text-sm font-semibold text-slate-800 mb-2">Línguas ({cvData.languages.length})</h3>
@@ -139,7 +189,7 @@ export default function StepReview() {
       {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg mt-4">{error}</p>}
 
       <div className="flex justify-between mt-8">
-        <button onClick={() => setStep(4)} className="px-6 py-2 text-sm text-slate-600 hover:text-slate-900">
+        <button onClick={() => setStep(5)} className="px-6 py-2 text-sm text-slate-600 hover:text-slate-900">
           ← Anterior
         </button>
         <button
