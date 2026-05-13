@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useCVStore, Experience } from '@/store/cv-store'
+import { useCVStore } from '@/store/cv-store'
 import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Experience } from '@/types/cv'
 
 const emptyExp = (): Experience => ({
   id: crypto.randomUUID(),
