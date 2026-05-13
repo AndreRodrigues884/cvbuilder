@@ -2,10 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useState } from 'react'
 import {
   LayoutDashboard, FileText, Search,
   Briefcase, Compass, MessageSquare,
-  ClipboardList, LogOut, Sparkles, UserCircle
+  ClipboardList, LogOut, Sparkles, UserCircle, Menu, X
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -22,6 +23,7 @@ const navigation = [
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   async function handleLogout() {
     const supabase = createClient()
@@ -30,10 +32,10 @@ export default function Sidebar() {
     router.refresh()
   }
 
-  return (
-    <div className="w-64 flex flex-col h-screen bg-white border-r border-slate-100">
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-5 border-b border-slate-100">
+      <div className="p-5 border-b border-slate-100 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200">
             <Sparkles size={16} className="text-white" />
@@ -43,6 +45,13 @@ export default function Sidebar() {
             <p className="text-xs text-slate-400 mt-0.5">Assistente de carreira</p>
           </div>
         </div>
+        {/* Fechar no mobile */}
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="lg:hidden text-slate-400 hover:text-slate-600"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -53,15 +62,18 @@ export default function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${isActive
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
+                isActive
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                }`}
+              }`}
             >
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150 ${isActive
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
+                isActive
                   ? `bg-gradient-to-br ${item.gradient} shadow-sm`
                   : 'bg-slate-100 group-hover:bg-slate-200'
-                }`}>
+              }`}>
                 <item.icon size={14} className={isActive ? 'text-white' : 'text-slate-500'} />
               </div>
               {item.name}
@@ -71,19 +83,21 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      {/* Bottom */}
       <div className="p-3 border-t border-slate-100 space-y-0.5">
         <Link
           href="/profile"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${pathname === '/profile'
+          onClick={() => setMobileOpen(false)}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
+            pathname === '/profile'
               ? 'bg-slate-900 text-white'
               : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+          }`}
         >
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150 ${pathname === '/profile'
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
+            pathname === '/profile'
               ? 'bg-gradient-to-br from-slate-500 to-slate-700'
               : 'bg-slate-100 group-hover:bg-slate-200'
-            }`}>
+          }`}>
             <UserCircle size={14} className={pathname === '/profile' ? 'text-white' : 'text-slate-500'} />
           </div>
           Perfil
@@ -99,5 +113,45 @@ export default function Sidebar() {
         </button>
       </div>
     </div>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <div className="hidden lg:flex w-64 flex-col h-screen bg-white border-r border-slate-100 flex-shrink-0">
+        <SidebarContent />
+      </div>
+
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200">
+            <Sparkles size={14} className="text-white" />
+          </div>
+          <span className="font-bold text-slate-900">CVBuilder</span>
+        </div>
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"
+        >
+          <Menu size={18} />
+        </button>
+      </div>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <div className={`lg:hidden fixed top-0 left-0 h-full w-72 z-50 bg-white border-r border-slate-100 transition-transform duration-300 ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <SidebarContent />
+      </div>
+    </>
   )
 }
