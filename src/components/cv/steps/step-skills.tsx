@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useCVStore, Skill, Language } from '@/store/cv-store'
+import { useCVStore } from '@/store/cv-store'
 import { Plus, X } from 'lucide-react'
+import { Language, Skill } from '@/types/cv'
 
 export default function StepSkills() {
   const { cvData, addSkill, removeSkill, addLanguage, removeLanguage, setStep } = useCVStore()
