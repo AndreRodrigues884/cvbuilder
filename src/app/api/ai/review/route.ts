@@ -7,15 +7,18 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { cvText, cvId } = await req.json()
+  const { cvText, cvId, jobTitle, jobDescription } = await req.json()
   if (!cvText) return NextResponse.json({ error: 'CV text is required' }, { status: 400 })
 
-  // Limpa o texto antes de enviar
   const cleanedText = cvText
     .replace(/[^\x20-\x7E\n\r\t\u00C0-\u024F]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .substring(0, 4000) // limita o tamanho
+    .substring(0, 4000)
+
+  const jobContext = jobTitle || jobDescription
+    ? `\n\nVaga a que se candidata: ${jobTitle || ''}${jobDescription ? `\nDescrição: ${jobDescription}` : ''}`
+    : ''
 
   const completion = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
@@ -26,10 +29,10 @@ export async function POST(req: NextRequest) {
       },
       {
         role: 'user',
-        content: `Analisa o seguinte CV e responde APENAS em JSON válido, sem markdown, sem \`\`\`json, sem texto antes ou depois.
+        content: `Analisa o seguinte CV e responde APENAS em JSON válido, sem markdown, sem \`\`\`json, sem texto antes ou depois.${jobContext ? ' Tem em conta a vaga a que o candidato se está a candidatar na tua análise, ajustando o score ATS, keywords e sugestões de acordo com os requisitos da vaga.' : ''}
 
 CV:
-${cleanedText}
+${cleanedText}${jobContext}
 
 Responde com este JSON exato:
 {
@@ -48,7 +51,7 @@ Responde com este JSON exato:
   })
 
   const text = completion.choices[0]?.message?.content || ''
-  
+
   let analysis
   try {
     analysis = JSON.parse(text)

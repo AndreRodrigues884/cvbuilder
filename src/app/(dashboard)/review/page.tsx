@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Upload, FileText, Loader2, CheckCircle, AlertCircle, Lightbulb, Search } from 'lucide-react'
+import { Upload, FileText, Loader2, CheckCircle, AlertCircle, Lightbulb, Search, Briefcase  } from 'lucide-react'
 
 interface Analysis {
   ats_score: number
@@ -17,6 +17,8 @@ interface Analysis {
 // Página de review do CV
 export default function ReviewPage() {
   const [mode, setMode] = useState<'upload' | 'text'>('upload')
+  const [jobTitle, setJobTitle] = useState('')
+  const [jobDescription, setJobDescription] = useState('')
   const [cvText, setCvText] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
@@ -61,7 +63,7 @@ export default function ReviewPage() {
       const res = await fetch('/api/ai/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cvText }),
+        body: JSON.stringify({ cvText, jobTitle, jobDescription }),
       })
 
       if (!res.ok) throw new Error('Erro na análise')
@@ -95,6 +97,39 @@ export default function ReviewPage() {
         <p className="text-slate-500 mt-1">Analisa o teu CV com inteligência artificial e recebe feedback detalhado</p>
       </div>
 
+      {/* Vaga (opcional) */}
+      <div className="mt-6 pt-6 border-t border-slate-100">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center shadow-md shadow-cyan-200">
+            <Briefcase size={13} className="text-white" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-800">Vaga a concorrer</h3>
+          <span className="text-xs text-slate-400 font-normal">(opcional)</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">Título da vaga</label>
+            <input
+              type="text"
+              value={jobTitle}
+              onChange={e => setJobTitle(e.target.value)}
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              placeholder="Ex: Frontend Developer"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">Descrição da vaga</label>
+            <textarea
+              value={jobDescription}
+              onChange={e => setJobDescription(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
+              placeholder="Cola aqui os requisitos da vaga..."
+            />
+          </div>
+        </div>
+      </div>
+
       {!analysis ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
           {/* Mode selector */}
@@ -102,8 +137,8 @@ export default function ReviewPage() {
             <button
               onClick={() => setMode('upload')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${mode === 'upload'
-                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-200'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-200'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
             >
               <Upload size={15} />
@@ -112,8 +147,8 @@ export default function ReviewPage() {
             <button
               onClick={() => setMode('text')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${mode === 'text'
-                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-200'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-200'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
             >
               <FileText size={15} />
@@ -145,6 +180,8 @@ export default function ReviewPage() {
           {error && (
             <p className="text-sm text-red-600 bg-red-50 px-3 py-2.5 rounded-xl mt-4 border border-red-100">{error}</p>
           )}
+
+
 
           <button
             onClick={handleAnalyse}
