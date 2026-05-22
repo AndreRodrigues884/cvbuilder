@@ -1,11 +1,15 @@
 import { groq } from '@/lib/ai/groq'
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { allowed } = await checkRateLimit(user.id, '/api/ai/review')
+  if (!allowed) return NextResponse.json({ error: 'Limite de pedidos atingido. Tenta novamente em 1 hora.' }, { status: 429 })
 
   const { cvText, cvId, jobTitle, jobDescription } = await req.json()
   if (!cvText) return NextResponse.json({ error: 'CV text is required' }, { status: 400 })

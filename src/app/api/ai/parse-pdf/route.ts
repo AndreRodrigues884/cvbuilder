@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Mistral } from '@mistralai/mistralai'
+import { createClient } from '@/lib/supabase/server'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const mistral = new Mistral({ apiKey: process.env.MISTRAL_API_KEY! })
 
 export async function POST(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { allowed } = await checkRateLimit(user.id, '/api/ai/parse-pdf')
+  if (!allowed) return NextResponse.json({ error: 'Limite de pedidos atingido. Tenta novamente em 1 hora.' }, { status: 429 })
+
   const formData = await req.formData()
   const file = formData.get('file') as File
   if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
@@ -11,7 +20,6 @@ export async function POST(req: NextRequest) {
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
 
-  // Upload do ficheiro para o Mistral
   const uploaded = await mistral.files.upload({
     file: {
       fileName: file.name,
@@ -20,10 +28,8 @@ export async function POST(req: NextRequest) {
     purpose: 'ocr' as any,
   })
 
-  // Obter URL assinado
   const signedUrl = await mistral.files.getSignedUrl({ fileId: uploaded.id })
 
-  // Processar OCR
   const result = await mistral.ocr.process({
     model: 'mistral-ocr-latest',
     document: {
@@ -32,13 +38,9 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  // Extrair texto de todas as páginas
   const text = result.pages.map((page: any) => page.markdown).join('\n\n')
 
-  // Apagar ficheiro após uso
   await mistral.files.delete({ fileId: uploaded.id })
-
-  console.log('Texto extraído (primeiros 300 chars):', text.substring(0, 300))
 
   if (!text.trim() || text.trim().length < 50) {
     return NextResponse.json({ text: '', error: 'Não foi possível extrair texto' })
