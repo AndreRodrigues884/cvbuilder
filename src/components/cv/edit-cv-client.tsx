@@ -2,6 +2,17 @@
 
 import { useCVStore } from '@/store/cv-store'
 import { Suspense, lazy, useEffect } from 'react'
+import type { Experience, Education, Skill, Language, Project, Certification, CVData } from '@/types/cv'
+
+interface InitialData {
+  cv: CVData
+  experiences: Experience[] | null
+  education: Education[] | null
+  skills: Skill[] | null
+  languages: Language[] | null
+  projects: Project[] | null
+  certifications: Certification[] | null
+}
 
 const StepPersonal = lazy(() => import('@/components/cv/steps/step-personal'))
 const StepExperience = lazy(() => import('@/components/cv/steps/step-experience'))
@@ -19,7 +30,7 @@ const steps = [
   { number: 6, label: 'Revisão' },
 ]
 
-export default function EditCVClient({ cvId, initialData }: { cvId: string, initialData: any }) {
+export default function EditCVClient({ cvId, initialData }: { cvId: string, initialData: InitialData }) {
   const { currentStep, updateCV, cvData, reset, setStep } = useCVStore()
 
   useEffect(() => {
@@ -37,29 +48,29 @@ export default function EditCVClient({ cvId, initialData }: { cvId: string, init
       github_url: cv.github_url || '',
       portfolio_url: cv.portfolio_url || '',
       summary: cv.summary || '',
-      experiences: (experiences || []).map((e: any) => ({
+      experiences: (experiences || []).map((e: Experience) => ({
         id: e.id, company: e.company, job_title: e.job_title,
         location: e.location || '', start_date: e.start_date || '',
         end_date: e.end_date || '', is_current: e.is_current || false,
         description: e.description || '', achievements: e.achievements || [],
       })),
-      education: (education || []).map((e: any) => ({
+      education: (education || []).map((e: Education) => ({
         id: e.id, institution: e.institution, degree: e.degree || '',
         field_of_study: e.field_of_study || '', start_date: e.start_date || '',
         end_date: e.end_date || '', is_current: e.is_current || false, grade: e.grade || '',
       })),
-      skills: (skills || []).map((s: any) => ({
+      skills: (skills || []).map((s: Skill) => ({
         id: s.id, name: s.name, level: s.level || 'intermediate', category: s.category || '',
       })),
-      languages: (languages || []).map((l: any) => ({
+      languages: (languages || []).map((l: Language) => ({
         id: l.id, language: l.language, level: l.level || 'intermediate',
       })),
-      projects: (projects || []).map((p: any) => ({
+      projects: (projects || []).map((p: Project) => ({
         id: p.id, name: p.name, description: p.description || '',
         technologies: p.technologies || [], url: p.url || '',
         github_url: p.github_url || '', start_date: p.start_date || '', end_date: p.end_date || '',
       })),
-      certifications: (certifications || []).map((c: any) => ({
+      certifications: (certifications || []).map((c: Certification) => ({
         id: c.id, name: c.name, issuer: c.issuer || '',
         issue_date: c.issue_date || '', expiry_date: c.expiry_date || '',
         credential_url: c.credential_url || '',

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       fileName: file.name,
       content: buffer,
     },
-    purpose: 'ocr' as 'ocr',
+    purpose: 'ocr',
   })
 
   const signedUrl = await mistral.files.getSignedUrl({ fileId: uploaded.id })
