@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { FileText, Search, Briefcase, Compass, MessageSquare, CheckCircle, ArrowRight, Star, ChevronDown } from 'lucide-react'
 
+export const revalidate = 3600 // regenera a cada hora
+
 const features = [
   { icon: FileText, title: 'CV Builder com AI', description: 'Cria o teu CV passo a passo com sugestões inteligentes. Templates profissionais otimizados para ATS.', gradient: 'from-violet-500 to-purple-600', bg: 'bg-violet-50', border: 'border-violet-100' },
   { icon: Search, title: 'AI Review', description: 'Score ATS instantâneo, análise de keywords, pontos fortes e fracos. Feedback detalhado em segundos.', gradient: 'from-blue-500 to-cyan-500', bg: 'bg-blue-50', border: 'border-blue-100' },

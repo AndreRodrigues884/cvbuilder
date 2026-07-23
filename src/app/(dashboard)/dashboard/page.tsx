@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { FileText, Search, Briefcase, Compass, MessageSquare, ClipboardList, ArrowRight, TrendingUp } from 'lucide-react'
 
+export const revalidate = 300 // cache de 5 minutos
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
