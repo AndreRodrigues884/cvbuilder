@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const { allowed } = await checkRateLimit(user.id, '/api/ai/review')
   if (!allowed) return NextResponse.json({ error: 'Limite de pedidos atingido. Tenta novamente em 1 hora.' }, { status: 429 })
 
-  const { cvText, cvId: _cvId, jobTitle, jobDescription } = await req.json()
+  const { cvText, jobTitle, jobDescription } = await req.json()
   if (!cvText) return NextResponse.json({ error: 'CV text is required' }, { status: 400 })
 
   const cleanedText = cvText

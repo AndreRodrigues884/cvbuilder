@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import {
   LayoutDashboard, FileText, Search,
@@ -24,7 +24,6 @@ const navigation = [
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { clearProfile } = useProfileStore()
 
@@ -69,13 +68,13 @@ export default function Sidebar() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${isActive
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }`}
               >
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150 ${isActive
-                    ? `bg-gradient-to-br ${item.gradient} shadow-sm`
-                    : 'bg-slate-100 group-hover:bg-slate-200'
+                  ? `bg-gradient-to-br ${item.gradient} shadow-sm`
+                  : 'bg-slate-100 group-hover:bg-slate-200'
                   }`}>
                   <item.icon size={14} className={isActive ? 'text-white' : 'text-slate-500'} />
                 </div>
@@ -108,13 +107,13 @@ export default function Sidebar() {
             href="/profile"
             onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${pathname === '/profile'
-                ? 'bg-slate-900 text-white'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              ? 'bg-slate-900 text-white'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
           >
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150 ${pathname === '/profile'
-                ? 'bg-gradient-to-br from-slate-500 to-slate-700'
-                : 'bg-slate-100 group-hover:bg-slate-200'
+              ? 'bg-gradient-to-br from-slate-500 to-slate-700'
+              : 'bg-slate-100 group-hover:bg-slate-200'
               }`}>
               <UserCircle size={14} className={pathname === '/profile' ? 'text-white' : 'text-slate-500'} />
             </div>

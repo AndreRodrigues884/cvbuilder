@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const { allowed } = await checkRateLimit(user.id, '/api/ai/interview/evaluate')
   if (!allowed) return NextResponse.json({ error: 'Limite de pedidos atingido. Tenta novamente em 1 hora.' }, { status: 429 })
 
-  const { question, answer, jobTitle, questionId: _questionId } = await req.json()
+  const { question, answer, jobTitle } = await req.json()
   if (!question || !answer) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
   const { choices } = await groq.chat.completions.create({

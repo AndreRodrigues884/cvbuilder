@@ -31,7 +31,7 @@ const steps = [
 ]
 
 export default function EditCVClient({ cvId, initialData }: { cvId: string, initialData: InitialData }) {
-  const { currentStep, updateCV, cvData, reset, setStep } = useCVStore()
+  const { currentStep, updateCV, reset, setStep } = useCVStore()
 
   useEffect(() => {
     reset()
@@ -76,6 +76,7 @@ export default function EditCVClient({ cvId, initialData }: { cvId: string, init
         credential_url: c.credential_url || '',
       })),
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

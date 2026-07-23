@@ -9,13 +9,12 @@ export default function StepSkills() {
   const { cvData, addSkill, removeSkill, addLanguage, removeLanguage, setStep } = useCVStore()
   const [skillName, setSkillName] = useState('')
   const [skillLevel, setSkillLevel] = useState<Skill['level']>('intermediate')
-  const [skillCategory, setSkillCategory] = useState('')
   const [langName, setLangName] = useState('')
   const [langLevel, setLangLevel] = useState<Language['level']>('intermediate')
 
   function handleAddSkill() {
     if (!skillName.trim()) return
-    addSkill({ id: crypto.randomUUID(), name: skillName.trim(), level: skillLevel, category: skillCategory })
+    addSkill({ id: crypto.randomUUID(), name: skillName.trim(), level: skillLevel, category: '' })
     setSkillName('')
   }
 
