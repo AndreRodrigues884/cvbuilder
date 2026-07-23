@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, FileText, Download, Pencil, Trash2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
@@ -15,22 +15,16 @@ export default function CVListPage() {
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [lastFetch, setLastFetch] = useState<number>(0)
-
-  const fetchCVs = useCallback(async (force = false) => {
-    const now = Date.now()
-    if (!force && lastFetch && now - lastFetch < 2 * 60 * 1000) return
-
-    const res = await fetch('/api/cv')
-    const data = await res.json()
-    setCvs(data.cvs || [])
-    setLastFetch(now)
-    setLoading(false)
-  }, [lastFetch])
 
   useEffect(() => {
+    async function fetchCVs() {
+      const res = await fetch('/api/cv')
+      const data = await res.json()
+      setCvs(data.cvs || [])
+      setLoading(false)
+    }
     fetchCVs()
-  }, [fetchCVs])
+  }, [])
 
   async function handleDelete() {
     if (!deleteId) return

@@ -25,31 +25,30 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
+    async function fetchProfile() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (data) {
+        setProfile({
+          full_name: data.full_name || '',
+          email: data.email || '',
+          current_job_title: data.current_job_title || '',
+          target_job_title: data.target_job_title || '',
+          years_of_experience: data.years_of_experience || null,
+        })
+      }
+      setLoading(false)
+    }
     fetchProfile()
   }, [])
-
-  async function fetchProfile() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (data) {
-      setProfile({
-        full_name: data.full_name || '',
-        email: data.email || '',
-        current_job_title: data.current_job_title || '',
-        target_job_title: data.target_job_title || '',
-        years_of_experience: data.years_of_experience || null,
-      })
-    }
-    setLoading(false)
-  }
 
   async function handleSave() {
     setSaving(true)

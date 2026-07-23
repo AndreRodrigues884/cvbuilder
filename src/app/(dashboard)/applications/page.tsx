@@ -53,15 +53,14 @@ export default function ApplicationsPage() {
   const [filter, setFilter] = useState<string>('all')
 
   useEffect(() => {
+    async function fetchApplications() {
+      const res = await fetch('/api/applications')
+      const data = await res.json()
+      setApplications(data.applications || [])
+      setLoading(false)
+    }
     fetchApplications()
   }, [])
-
-  async function fetchApplications() {
-    const res = await fetch('/api/applications')
-    const data = await res.json()
-    setApplications(data.applications || [])
-    setLoading(false)
-  }
 
   async function handleAdd() {
     if (!form.company || !form.job_title) return
