@@ -87,7 +87,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-200">
               <FileText size={15} className="text-white" />
             </div>
-            <span className="font-display font-700 text-lg text-slate-900">CVBuilder</span>
+            <span className="font-display font-bold text-lg text-slate-900">CVBuilder</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Funcionalidades</a>
@@ -115,7 +115,7 @@ export default function LandingPage() {
             Powered by Inteligência Artificial
           </div>
 
-          <h1 className="animate-fade-up-1 font-display text-5xl md:text-7xl font-800 text-slate-900 leading-[1.05] tracking-tight mb-6">
+          <h1 className="animate-fade-up-1 font-display text-5xl md:text-7xl font-extrabold text-slate-900 leading-[1.05] tracking-tight mb-6">
             O teu assistente<br />
             <span className="gradient-text">de procura de emprego</span>
           </h1>
@@ -143,7 +143,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-xs text-slate-500 font-medium">ATS Score</p>
-                <p className="text-4xl font-display font-800 text-slate-900 mt-0.5">87<span className="text-xl text-slate-400">/100</span></p>
+                <p className="text-4xl font-display font-extrabold text-slate-900 mt-0.5">87<span className="text-xl text-slate-400">/100</span></p>
               </div>
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-200">
                 <CheckCircle size={24} className="text-white" />
@@ -186,7 +186,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-violet-600 font-semibold text-sm mb-3 tracking-wide uppercase">Funcionalidades</p>
-            <h2 className="font-display text-4xl md:text-5xl font-800 text-slate-900 mb-4">Tudo o que precisas,<br />numa só plataforma</h2>
+            <h2 className="font-display text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Tudo o que precisas,<br />numa só plataforma</h2>
             <p className="text-slate-500 max-w-xl mx-auto text-lg">Desde a criação do CV até à preparação para entrevistas, o CVBuilder acompanha-te em todo o processo.</p>
           </div>
 
@@ -196,7 +196,7 @@ export default function LandingPage() {
                 <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center mb-4 shadow-lg`}>
                   <f.icon size={20} className="text-white" />
                 </div>
-                <h3 className="font-display font-700 text-slate-900 mb-2 text-lg">{f.title}</h3>
+                <h3 className="font-display font-bold text-slate-900 mb-2 text-lg">{f.title}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{f.description}</p>
               </div>
             ))}
@@ -209,7 +209,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-violet-600 font-semibold text-sm mb-3 tracking-wide uppercase">Como funciona</p>
-            <h2 className="font-display text-4xl md:text-5xl font-800 text-slate-900 mb-4">Em 4 passos simples</h2>
+            <h2 className="font-display text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Em 4 passos simples</h2>
             <p className="text-slate-500 text-lg">Começas a candidatar-te com mais confiança em menos de 10 minutos.</p>
           </div>
 
@@ -223,9 +223,9 @@ export default function LandingPage() {
               <div key={step.n} className="relative">
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 card-hover h-full">
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${step.gradient} flex items-center justify-center mb-4 shadow-lg`}>
-                    <span className="text-white font-display font-800 text-sm">{step.n}</span>
+                    <span className="text-white font-display font-extrabold text-sm">{step.n}</span>
                   </div>
-                  <h3 className="font-display font-700 text-slate-900 mb-2">{step.title}</h3>
+                  <h3 className="font-display font-bold text-slate-900 mb-2">{step.title}</h3>
                   <p className="text-sm text-slate-500 leading-relaxed">{step.desc}</p>
                 </div>
                 {i < 3 && (
@@ -244,7 +244,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-violet-600 font-semibold text-sm mb-3 tracking-wide uppercase">Testemunhos</p>
-            <h2 className="font-display text-4xl md:text-5xl font-800 text-slate-900 mb-4">O que dizem os utilizadores</h2>
+            <h2 className="font-display text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">O que dizem os utilizadores</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -276,15 +276,15 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-violet-600 font-semibold text-sm mb-3 tracking-wide uppercase">Preços</p>
-            <h2 className="font-display text-4xl md:text-5xl font-800 text-slate-900 mb-4">Simples e transparente</h2>
+            <h2 className="font-display text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Simples e transparente</h2>
             <p className="text-slate-500 text-lg">Começa gratuitamente. Sempre.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {/* Free */}
             <div className="bg-white rounded-2xl border border-slate-200 p-8">
-              <p className="font-display font-700 text-slate-900 text-lg mb-1">Gratuito</p>
-              <p className="text-4xl font-display font-800 text-slate-900 mb-1">0€</p>
+              <p className="font-display font-bold text-slate-900 text-lg mb-1">Gratuito</p>
+              <p className="text-4xl font-display font-extrabold text-slate-900 mb-1">0€</p>
               <p className="text-sm text-slate-500 mb-6">Para sempre</p>
               <ul className="space-y-3 mb-8">
                 {['CV Builder completo', 'AI Review ilimitado', 'Job Match', 'Interview Prep', 'Career Copilot', 'Tracking de candidaturas', 'Exportar para PDF'].map(f => (
@@ -304,8 +304,8 @@ export default function LandingPage() {
               <div className="absolute top-4 right-4 bg-white/20 text-white text-xs font-medium px-3 py-1 rounded-full backdrop-blur">
                 Em breve
               </div>
-              <p className="font-display font-700 text-white text-lg mb-1">Pro</p>
-              <p className="text-4xl font-display font-800 text-white mb-1">9€</p>
+              <p className="font-display font-bold text-white text-lg mb-1">Pro</p>
+              <p className="text-4xl font-display font-extrabold text-white mb-1">9€</p>
               <p className="text-sm text-white/60 mb-6">por mês</p>
               <ul className="space-y-3 mb-8">
                 {['Tudo do plano Gratuito', 'Templates premium', 'CV em múltiplos idiomas', 'Análise de LinkedIn', 'Suporte prioritário', 'Histórico ilimitado'].map(f => (
@@ -328,7 +328,7 @@ export default function LandingPage() {
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-violet-600 font-semibold text-sm mb-3 tracking-wide uppercase">FAQ</p>
-            <h2 className="font-display text-4xl md:text-5xl font-800 text-slate-900 mb-4">Perguntas frequentes</h2>
+            <h2 className="font-display text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Perguntas frequentes</h2>
           </div>
 
           <div className="space-y-3">
@@ -356,7 +356,7 @@ export default function LandingPage() {
               <div className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full bg-white blur-3xl" />
             </div>
             <div className="relative">
-              <h2 className="font-display text-4xl md:text-5xl font-800 text-white mb-4 leading-tight">
+              <h2 className="font-display text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
                 Pronto para encontrar<br />o teu próximo emprego?
               </h2>
               <p className="text-white/70 text-lg mb-8">
@@ -379,7 +379,7 @@ export default function LandingPage() {
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center">
               <FileText size={13} className="text-white" />
             </div>
-            <span className="font-display font-700 text-slate-900">CVBuilder</span>
+            <span className="font-display font-bold text-slate-900">CVBuilder</span>
           </div>
           <div className="flex items-center gap-6">
             <a href="#features" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Funcionalidades</a>

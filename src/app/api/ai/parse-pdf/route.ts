@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       fileName: file.name,
       content: buffer,
     },
-    purpose: 'ocr' as any,
+    purpose: 'ocr' as 'ocr',
   })
 
   const signedUrl = await mistral.files.getSignedUrl({ fileId: uploaded.id })
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  const text = result.pages.map((page: any) => page.markdown).join('\n\n')
+  const text = result.pages.map((page: { markdown: string }) => page.markdown).join('\n\n')
 
   await mistral.files.delete({ fileId: uploaded.id })
 

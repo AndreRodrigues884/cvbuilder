@@ -1,63 +1,83 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import puppeteer from 'puppeteer'
+import type { Experience, Education, Skill, Language } from '@/types/cv'
 
-export async function GET(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    const { id } = await params
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    // Buscar CV e todas as secções
-    const [
-        { data: cv },
-        { data: experiences },
-        { data: education },
-        { data: skills },
-        { data: languages },
-    ] = await Promise.all([
-        supabase.from('cvs').select('*').eq('id', id).eq('user_id', user.id).single(),
-        supabase.from('cv_experiences').select('*').eq('cv_id', id).order('order_index'),
-        supabase.from('cv_education').select('*').eq('cv_id', id).order('order_index'),
-        supabase.from('cv_skills').select('*').eq('cv_id', id).order('order_index'),
-        supabase.from('cv_languages').select('*').eq('cv_id', id).order('order_index'),
-    ])
-
-    if (!cv) return NextResponse.json({ error: 'CV not found' }, { status: 404 })
-
-    const html = generateCVHtml({ cv, experiences, education, skills, languages })
-
-    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] })
-    const page = await browser.newPage()
-    await page.setContent(html, { waitUntil: 'load' })
-    const pdf = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' } })
-    await browser.close()
-
-    return new NextResponse(Buffer.from(pdf), {
-        headers: {
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="${cv.title || 'cv'}.pdf"`,
-        },
-    })
+interface CVRecord {
+  full_name: string
+  email: string
+  phone: string
+  location: string
+  linkedin_url: string
+  github_url: string
+  portfolio_url: string
+  summary: string
+  title: string
 }
 
-function generateCVHtml({ cv, experiences, education, skills, languages }: any) {
-    const formatDate = (date: string) => {
-        if (!date) return ''
-        const [year, month] = date.split('-')
-        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-        return `${months[parseInt(month) - 1]} ${year}`
-    }
+interface GenerateCVHtmlParams {
+  cv: CVRecord
+  experiences: Experience[] | null
+  education: Education[] | null
+  skills: Skill[] | null
+  languages: Language[] | null
+}
 
-    const levelLabel: Record<string, string> = {
-        beginner: 'Iniciante', intermediate: 'Intermédio', advanced: 'Avançado', expert: 'Especialista',
-        basic: 'Básico', native: 'Nativo',
-    }
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    return `
+  const [
+    { data: cv },
+    { data: experiences },
+    { data: education },
+    { data: skills },
+    { data: languages },
+  ] = await Promise.all([
+    supabase.from('cvs').select('*').eq('id', id).eq('user_id', user.id).single(),
+    supabase.from('cv_experiences').select('*').eq('cv_id', id).order('order_index'),
+    supabase.from('cv_education').select('*').eq('cv_id', id).order('order_index'),
+    supabase.from('cv_skills').select('*').eq('cv_id', id).order('order_index'),
+    supabase.from('cv_languages').select('*').eq('cv_id', id).order('order_index'),
+  ])
+
+  if (!cv) return NextResponse.json({ error: 'CV not found' }, { status: 404 })
+
+  const html = generateCVHtml({ cv, experiences, education, skills, languages })
+
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] })
+  const page = await browser.newPage()
+  await page.setContent(html, { waitUntil: 'load' })
+  const pdf = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' } })
+  await browser.close()
+
+  return new NextResponse(Buffer.from(pdf), {
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${cv.title || 'cv'}.pdf"`,
+    },
+  })
+}
+
+function generateCVHtml({ cv, experiences, education, skills, languages }: GenerateCVHtmlParams) {
+  const formatDate = (date: string) => {
+    if (!date) return ''
+    const [year, month] = date.split('-')
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+    return `${months[parseInt(month) - 1]} ${year}`
+  }
+
+  const levelLabel: Record<string, string> = {
+    beginner: 'Iniciante', intermediate: 'Intermédio', advanced: 'Avançado', expert: 'Especialista',
+    basic: 'Básico', native: 'Nativo',
+  }
+
+  return `
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -102,7 +122,7 @@ function generateCVHtml({ cv, experiences, education, skills, languages }: any) 
   ${experiences && experiences.length > 0 ? `
   <div class="section">
     <div class="section-title">Experiência Profissional</div>
-    ${experiences.map((e: any) => `
+    ${experiences.map((e: Experience) => `
     <div class="item">
       <div class="item-header">
         <div>
@@ -118,7 +138,7 @@ function generateCVHtml({ cv, experiences, education, skills, languages }: any) 
   ${education && education.length > 0 ? `
   <div class="section">
     <div class="section-title">Educação</div>
-    ${education.map((e: any) => `
+    ${education.map((e: Education) => `
     <div class="item">
       <div class="item-header">
         <div>
@@ -135,14 +155,14 @@ function generateCVHtml({ cv, experiences, education, skills, languages }: any) 
     <div class="section">
       <div class="section-title">Skills</div>
       <div class="skills-grid">
-        ${skills.map((s: any) => `<span class="skill-tag">${s.name}</span>`).join('')}
+        ${skills.map((s: Skill) => `<span class="skill-tag">${s.name}</span>`).join('')}
       </div>
     </div>` : ''}
 
     ${languages && languages.length > 0 ? `
     <div class="section">
       <div class="section-title">Línguas</div>
-      ${languages.map((l: any) => `
+      ${languages.map((l: Language) => `
       <div class="item">
         <span class="item-title">${l.language}</span>
         <span class="item-subtitle"> · ${levelLabel[l.level] || l.level}</span>
