@@ -21,10 +21,17 @@ const statusConfig = {
   withdrawn: { label: 'Desistido', color: 'bg-slate-50 text-slate-600 border-slate-200' },
 }
 
-const emptyForm = {
+const emptyForm: {
+  company: string
+  job_title: string
+  status: Application['status']
+  applied_at: string
+  notes: string
+  job_url: string
+} = {
   company: '',
   job_title: '',
-  status: 'applied' as const,
+  status: 'applied',
   applied_at: new Date().toISOString().split('T')[0],
   notes: '',
   job_url: '',
@@ -34,7 +41,14 @@ export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState(emptyForm)
+  const [form, setForm] = useState<{
+    company: string
+    job_title: string
+    status: Application['status']
+    applied_at: string
+    notes: string
+    job_url: string
+  }>(emptyForm)
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState<string>('all')
 
@@ -132,8 +146,8 @@ export default function ApplicationsPage() {
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors ${filter === f.key
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+              ? 'bg-slate-900 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
               }`}
           >
             {f.label}
@@ -170,7 +184,7 @@ export default function ApplicationsPage() {
               <label className="block text-xs font-medium text-slate-700 mb-1.5">Estado</label>
               <select
                 value={form.status}
-                onChange={e => setForm(p => ({ ...p, status: e.target.value as any }))}
+                onChange={e => setForm(p => ({ ...p, status: e.target.value as Application['status'] }))}
                 className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
               >
                 {Object.entries(statusConfig).map(([key, val]) => (
