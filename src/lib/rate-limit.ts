@@ -19,7 +19,7 @@ export async function checkRateLimit(userId: string, endpoint: string): Promise<
   // Busca pedidos na janela atual
   const { data } = await supabase
     .from('rate_limits')
-    .select('*')
+    .select('id, requests, window_start')
     .eq('user_id', userId)
     .eq('endpoint', endpoint)
     .gte('window_start', windowStart)

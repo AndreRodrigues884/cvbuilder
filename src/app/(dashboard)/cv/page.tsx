@@ -3,15 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, FileText, Download, Pencil, Trash2 } from 'lucide-react'
-import ConfirmModal from '@/components/ui/confirm-modal'
-
-interface CV {
-  id: string
-  title: string
-  full_name: string
-  ats_score: number | null
-  created_at: string
-}
+import dynamic from 'next/dynamic'
+import { CV } from '@/types/cv'
 
 export default function CVListPage() {
   const [cvs, setCvs] = useState<CV[]>([])
@@ -19,6 +12,9 @@ export default function CVListPage() {
   const [deleting, setDeleting] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [lastFetch, setLastFetch] = useState<number>(0)
+  const ConfirmModal = dynamic(() => import('@/components/ui/confirm-modal'), {
+  ssr: false,
+})
 
   useEffect(() => {
     fetchCVs()

@@ -1,12 +1,14 @@
 'use client'
 
+import { Suspense, lazy } from 'react'
 import { useCVStore } from '@/store/cv-store'
-import StepPersonal from '@/components/cv/steps/step-personal'
-import StepExperience from '@/components/cv/steps/step-experience'
-import StepEducation from '@/components/cv/steps/step-education'
-import StepSkills from '@/components/cv/steps/step-skills'
-import StepProjects from '@/components/cv/steps/step-projects'
-import StepReview from '@/components/cv/steps/step-review'
+
+const StepPersonal = lazy(() => import('@/components/cv/steps/step-personal'))
+const StepExperience = lazy(() => import('@/components/cv/steps/step-experience'))
+const StepEducation = lazy(() => import('@/components/cv/steps/step-education'))
+const StepSkills = lazy(() => import('@/components/cv/steps/step-skills'))
+const StepProjects = lazy(() => import('@/components/cv/steps/step-projects'))
+const StepReview = lazy(() => import('@/components/cv/steps/step-review'))
 
 const steps = [
   { number: 1, label: 'Pessoal' },
@@ -16,6 +18,18 @@ const steps = [
   { number: 5, label: 'Projetos' },
   { number: 6, label: 'Revisão' },
 ]
+
+function StepSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="h-6 w-48 bg-slate-100 rounded-lg" />
+      <div className="h-4 w-64 bg-slate-100 rounded-lg" />
+      <div className="h-10 w-full bg-slate-100 rounded-xl mt-6" />
+      <div className="h-10 w-full bg-slate-100 rounded-xl" />
+      <div className="h-10 w-full bg-slate-100 rounded-xl" />
+    </div>
+  )
+}
 
 export default function NewCVPage() {
   const { currentStep } = useCVStore()
@@ -48,12 +62,14 @@ export default function NewCVPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-8">
-        {currentStep === 1 && <StepPersonal />}
-        {currentStep === 2 && <StepExperience />}
-        {currentStep === 3 && <StepEducation />}
-        {currentStep === 4 && <StepSkills />}
-        {currentStep === 5 && <StepProjects />}
-        {currentStep === 6 && <StepReview />}
+        <Suspense fallback={<StepSkeleton />}>
+          {currentStep === 1 && <StepPersonal />}
+          {currentStep === 2 && <StepExperience />}
+          {currentStep === 3 && <StepEducation />}
+          {currentStep === 4 && <StepSkills />}
+          {currentStep === 5 && <StepProjects />}
+          {currentStep === 6 && <StepReview />}
+        </Suspense>
       </div>
     </div>
   )

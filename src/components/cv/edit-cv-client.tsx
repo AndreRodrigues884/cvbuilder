@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useCVStore } from '@/store/cv-store'
-import StepPersonal from '@/components/cv/steps/step-personal'
-import StepExperience from '@/components/cv/steps/step-experience'
-import StepEducation from '@/components/cv/steps/step-education'
-import StepSkills from '@/components/cv/steps/step-skills'
-import StepProjects from '@/components/cv/steps/step-projects'
-import StepReviewEdit from '@/components/cv/steps/step-review-edit'
+import { Suspense, lazy, useEffect } from 'react'
+
+const StepPersonal = lazy(() => import('@/components/cv/steps/step-personal'))
+const StepExperience = lazy(() => import('@/components/cv/steps/step-experience'))
+const StepEducation = lazy(() => import('@/components/cv/steps/step-education'))
+const StepSkills = lazy(() => import('@/components/cv/steps/step-skills'))
+const StepProjects = lazy(() => import('@/components/cv/steps/step-projects'))
+const StepReviewEdit = lazy(() => import('@/components/cv/steps/step-review-edit'))
 
 const steps = [
   { number: 1, label: 'Pessoal' },
@@ -77,9 +78,8 @@ export default function EditCVClient({ cvId, initialData }: { cvId: string, init
         {steps.map((step, index) => (
           <div key={step.number} className="flex items-center flex-1">
             <div className="flex flex-col items-center">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
-                currentStep > step.number ? 'bg-slate-900 text-white' : currentStep === step.number ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'
-              }`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${currentStep > step.number ? 'bg-slate-900 text-white' : currentStep === step.number ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'
+                }`}>
                 {currentStep > step.number ? '✓' : step.number}
               </div>
               <span className={`text-xs mt-1.5 whitespace-nowrap ${currentStep === step.number ? 'text-slate-900 font-medium' : 'text-slate-400'}`}>
@@ -94,12 +94,21 @@ export default function EditCVClient({ cvId, initialData }: { cvId: string, init
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-8">
-        {currentStep === 1 && <StepPersonal />}
-        {currentStep === 2 && <StepExperience />}
-        {currentStep === 3 && <StepEducation />}
-        {currentStep === 4 && <StepSkills />}
-        {currentStep === 5 && <StepProjects />}
-        {currentStep === 6 && <StepReviewEdit cvId={cvId} />}
+        <Suspense fallback={
+          <div className="space-y-4 animate-pulse">
+            <div className="h-6 w-48 bg-slate-100 rounded-lg" />
+            <div className="h-4 w-64 bg-slate-100 rounded-lg" />
+            <div className="h-10 w-full bg-slate-100 rounded-xl mt-6" />
+            <div className="h-10 w-full bg-slate-100 rounded-xl" />
+          </div>
+        }>
+          {currentStep === 1 && <StepPersonal />}
+          {currentStep === 2 && <StepExperience />}
+          {currentStep === 3 && <StepEducation />}
+          {currentStep === 4 && <StepSkills />}
+          {currentStep === 5 && <StepProjects />}
+          {currentStep === 6 && <StepReviewEdit cvId={cvId} />}
+        </Suspense>
       </div>
     </div>
   )

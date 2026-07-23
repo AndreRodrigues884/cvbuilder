@@ -44,3 +44,5 @@ next-env.d.ts
 system_design/
 
 src/lib/ai/prompts/
+
+load-tests/

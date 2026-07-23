@@ -1,3 +1,11 @@
+export interface CV {
+  id: string
+  title: string
+  full_name: string
+  ats_score: number | null
+  created_at: string
+}
+
 export interface Experience {
   id: string
   company: string
