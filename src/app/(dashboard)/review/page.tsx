@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Upload, FileText, Loader2, CheckCircle, AlertCircle, Lightbulb, Search, Briefcase  } from 'lucide-react'
 
 interface Analysis {
@@ -69,7 +68,7 @@ export default function ReviewPage() {
       if (!res.ok) throw new Error('Erro na análise')
       const data = await res.json()
       setAnalysis(data.analysis)
-    } catch (e) {
+    } catch {
       setError('Ocorreu um erro na análise. Tenta novamente.')
     } finally {
       setLoading(false)

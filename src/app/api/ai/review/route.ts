@@ -5,7 +5,6 @@ import { checkRateLimit } from '@/lib/rate-limit'
 import { getCachedReview } from '@/lib/ai/cache'
 import { reviewSystemPrompt, reviewUserPrompt } from '@/lib/ai/prompts/review'
 
-
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -14,7 +13,7 @@ export async function POST(req: NextRequest) {
   const { allowed } = await checkRateLimit(user.id, '/api/ai/review')
   if (!allowed) return NextResponse.json({ error: 'Limite de pedidos atingido. Tenta novamente em 1 hora.' }, { status: 429 })
 
-  const { cvText, cvId, jobTitle, jobDescription } = await req.json()
+  const { cvText, cvId: _cvId, jobTitle, jobDescription } = await req.json()
   if (!cvText) return NextResponse.json({ error: 'CV text is required' }, { status: 400 })
 
   const cleanedText = cvText
@@ -27,12 +26,10 @@ export async function POST(req: NextRequest) {
     ? `\n\nVaga a que se candidata: ${jobTitle || ''}${jobDescription ? `\nDescrição: ${jobDescription}` : ''}`
     : ''
 
-  // Depois de limpar o texto e antes de chamar o Groq:
   const textHash = cleanedText.substring(0, 500).split('').reduce((hash: number, char: string) => {
     return ((hash << 5) - hash) + char.charCodeAt(0) | 0
   }, 0).toString(36)
 
-  // Verifica cache
   const cached = await getCachedReview(user.id, cleanedText)
   if (cached) {
     console.log('Cache HIT — a devolver resultado guardado')
@@ -51,20 +48,41 @@ export async function POST(req: NextRequest) {
     })
   }
 
-
-  const completion = await groq.chat.completions.create({
+  const { choices } = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [
-      {
-        role: 'system',
-        content: reviewSystemPrompt
-      },
-      {
-        role: 'user',
-        content: reviewUserPrompt(cleanedText, jobContext)
-      }
+      { role: 'system', content: reviewSystemPrompt },
+      { role: 'user', content: reviewUserPrompt(cleanedText, jobContext) }
     ],
     temperature: 0.1,
     response_format: { type: 'json_object' },
   })
+
+  const text = choices[0]?.message?.content || ''
+
+  let analysis
+  try {
+    analysis = JSON.parse(text)
+  } catch {
+    return NextResponse.json({ error: 'Erro ao processar resposta da AI' }, { status: 500 })
+  }
+
+  const { data: review } = await supabase
+    .from('ai_reviews')
+    .insert({
+      user_id: user.id,
+      cv_id: null,
+      text_hash: textHash,
+      ats_score: analysis.ats_score,
+      overall_feedback: analysis.overall_feedback,
+      strengths: analysis.strengths,
+      weaknesses: analysis.weaknesses,
+      suggestions: analysis.suggestions,
+      keywords_found: analysis.keywords_found,
+      keywords_missing: analysis.keywords_missing,
+    })
+    .select()
+    .single()
+
+  return NextResponse.json({ review, analysis })
 }

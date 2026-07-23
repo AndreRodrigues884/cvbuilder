@@ -1,10 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Plus, FileText, Download, Pencil, Trash2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { CV } from '@/types/cv'
+import type { CV } from '@/types/cv'
+
+const ConfirmModal = dynamic(() => import('@/components/ui/confirm-modal'), {
+  ssr: false,
+})
 
 export default function CVListPage() {
   const [cvs, setCvs] = useState<CV[]>([])
@@ -12,24 +16,21 @@ export default function CVListPage() {
   const [deleting, setDeleting] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [lastFetch, setLastFetch] = useState<number>(0)
-  const ConfirmModal = dynamic(() => import('@/components/ui/confirm-modal'), {
-  ssr: false,
-})
 
-  useEffect(() => {
-    fetchCVs()
-  }, [])
-
-  async function fetchCVs(force = false) {
+  const fetchCVs = useCallback(async (force = false) => {
     const now = Date.now()
-    if (!force && lastFetch && now - lastFetch < 2 * 60 * 1000) return // 2 minutos
+    if (!force && lastFetch && now - lastFetch < 2 * 60 * 1000) return
 
     const res = await fetch('/api/cv')
     const data = await res.json()
     setCvs(data.cvs || [])
     setLastFetch(now)
     setLoading(false)
-  }
+  }, [lastFetch])
+
+  useEffect(() => {
+    fetchCVs()
+  }, [fetchCVs])
 
   async function handleDelete() {
     if (!deleteId) return
@@ -94,8 +95,8 @@ export default function CVListPage() {
                   <Pencil size={13} />
                   Editar
                 </Link>
-                <a
-                  href={`/api/cv/${cv.id}/export`}
+
+                <a href={`/api/cv/${cv.id}/export`}
                   target="_blank"
                   className="flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg px-3 py-2 hover:border-slate-400 transition-colors"
                 >

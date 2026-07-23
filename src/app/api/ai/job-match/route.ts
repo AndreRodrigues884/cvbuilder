@@ -15,20 +15,39 @@ export async function POST(req: NextRequest) {
   const { cvText, jobTitle, jobDescription, company } = await req.json()
   if (!cvText || !jobDescription) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
-  const completion = await groq.chat.completions.create({
+  const { choices } = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [
-      {
-        role: 'system',
-        content: jobMatchSystemPrompt
-      },
-      {
-        role: 'user',
-        content: jobMatchUserPrompt(cvText, jobTitle, jobDescription, company)
-      }
+      { role: 'system', content: jobMatchSystemPrompt },
+      { role: 'user', content: jobMatchUserPrompt(cvText, jobTitle, jobDescription, company) }
     ],
     temperature: 0.2,
     response_format: { type: 'json_object' },
   })
 
+  const text = choices[0]?.message?.content || ''
+
+  let analysis
+  try {
+    analysis = JSON.parse(text)
+  } catch {
+    return NextResponse.json({ error: 'Erro ao processar resposta da AI' }, { status: 500 })
+  }
+
+  const { data: jobMatch } = await supabase
+    .from('job_matches')
+    .insert({
+      user_id: user.id,
+      job_title: jobTitle,
+      job_description: jobDescription,
+      company: company || null,
+      match_score: analysis.match_score,
+      matched_keywords: analysis.matched_keywords,
+      missing_keywords: analysis.missing_keywords,
+      suggestions: analysis.suggestions,
+    })
+    .select()
+    .single()
+
+  return NextResponse.json({ jobMatch, analysis })
 }
