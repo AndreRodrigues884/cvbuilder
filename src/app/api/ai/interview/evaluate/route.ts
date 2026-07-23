@@ -2,6 +2,7 @@ import { groq } from '@/lib/ai/groq'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { interviewEvaluateSystemPrompt, interviewEvaluateUserPrompt } from '@/lib/ai/prompts/interview'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -19,43 +20,15 @@ export async function POST(req: NextRequest) {
     messages: [
       {
         role: 'system',
-        content: 'És um entrevistador experiente. Avalias respostas de entrevista de forma construtiva e honesta. Respondes SEMPRE em JSON válido.'
+        content: interviewEvaluateSystemPrompt
       },
       {
         role: 'user',
-        content: `Avalia esta resposta de entrevista para a vaga de ${jobTitle}.
-
-Pergunta: ${question}
-Resposta do candidato: ${answer}
-
-Responde APENAS em JSON válido:
-{
-  "score": <número de 0 a 10>,
-  "feedback": "<feedback construtivo em 2-3 frases>",
-  "positive": "<o que foi bem na resposta>",
-  "improve": "<o que podia ser melhorado>",
-  "example_answer": "<exemplo de uma resposta forte para esta pergunta>"
-}`
+        content: interviewEvaluateUserPrompt(question, answer, jobTitle)
       }
     ],
     temperature: 0.3,
     response_format: { type: 'json_object' },
   })
-
-  const text = completion.choices[0]?.message?.content || ''
-  const evaluation = JSON.parse(text)
-
-  // Guardar avaliação
-  if (questionId) {
-    await supabase
-      .from('interview_questions')
-      .update({
-        user_answer: answer,
-        ai_feedback: evaluation.feedback,
-        score: evaluation.score,
-      })
-      .eq('id', questionId)
-  }
-
-  return NextResponse.json({ evaluation })
 }
+  

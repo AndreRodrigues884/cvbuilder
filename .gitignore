@@ -42,3 +42,5 @@ yarn-error.log*
 next-env.d.ts
 
 system_design/
+
+src/lib/ai/prompts/

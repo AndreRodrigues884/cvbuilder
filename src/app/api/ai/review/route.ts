@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { getCachedReview } from '@/lib/ai/cache'
+import { reviewSystemPrompt, reviewUserPrompt } from '@/lib/ai/prompts/review'
 
 
 export async function POST(req: NextRequest) {
@@ -56,57 +57,14 @@ export async function POST(req: NextRequest) {
     messages: [
       {
         role: 'system',
-        content: 'És um especialista em recrutamento e otimização de CVs. Respondes SEMPRE em JSON válido, sem markdown, sem texto adicional, sem blocos de código. Apenas JSON puro.'
+        content: reviewSystemPrompt
       },
       {
         role: 'user',
-        content: `Analisa o seguinte CV e responde APENAS em JSON válido, sem markdown, sem \`\`\`json, sem texto antes ou depois.${jobContext ? ' Tem em conta a vaga a que o candidato se está a candidatar na tua análise, ajustando o score ATS, keywords e sugestões de acordo com os requisitos da vaga.' : ''}
-
-CV:
-${cleanedText}${jobContext}
-
-Responde com este JSON exato:
-{
-  "ats_score": 75,
-  "overall_feedback": "feedback aqui",
-  "strengths": ["ponto 1", "ponto 2", "ponto 3"],
-  "weaknesses": ["fraco 1", "fraco 2", "fraco 3"],
-  "suggestions": ["sugestão 1", "sugestão 2", "sugestão 3", "sugestão 4"],
-  "keywords_found": ["keyword 1", "keyword 2"],
-  "keywords_missing": ["keyword 1", "keyword 2"]
-}`
+        content: reviewUserPrompt(cleanedText, jobContext)
       }
     ],
     temperature: 0.1,
     response_format: { type: 'json_object' },
   })
-
-  const text = completion.choices[0]?.message?.content || ''
-
-  let analysis
-  try {
-    analysis = JSON.parse(text)
-  } catch (e) {
-    console.error('JSON parse error:', text)
-    return NextResponse.json({ error: 'Erro ao processar resposta da AI' }, { status: 500 })
-  }
-
-  const { data: review } = await supabase
-    .from('ai_reviews')
-    .insert({
-      user_id: user.id,
-      cv_id: cvId || null,
-      text_hash: textHash,
-      ats_score: analysis.ats_score,
-      overall_feedback: analysis.overall_feedback,
-      strengths: analysis.strengths,
-      weaknesses: analysis.weaknesses,
-      suggestions: analysis.suggestions,
-      keywords_found: analysis.keywords_found,
-      keywords_missing: analysis.keywords_missing,
-    })
-    .select()
-    .single()
-
-  return NextResponse.json({ review, analysis })
 }
