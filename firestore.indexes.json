@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "aiReviews",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "text_hash", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "careerPlans",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "current_position", "order": "ASCENDING" },
+        { "fieldPath": "target_role", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

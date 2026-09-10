@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/firebase/get-current-user'
+import { adminDb } from '@/lib/firebase/admin'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { FileText, Search, Briefcase, Compass, MessageSquare, ClipboardList, ArrowRight, TrendingUp } from 'lucide-react'
@@ -17,13 +18,9 @@ const quickActions = [
 ]
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, target_job_title')
-    .eq('id', user!.id)
-    .single()
+  const user = await getCurrentUser()
+  const profileDoc = await adminDb.collection('users').doc(user!.id).get()
+  const profile = profileDoc.data() as { full_name?: string; target_job_title?: string } | undefined
 
   const firstName = profile?.full_name?.split(' ')[0] || 'utilizador'
   const hour = new Date().getHours()

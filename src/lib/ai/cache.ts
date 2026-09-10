@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { adminDb } from '@/lib/firebase/admin'
 
 // Gera um hash simples do texto para comparação
 function hashText(text: string): string {
@@ -11,36 +11,42 @@ function hashText(text: string): string {
   return hash.toString(36)
 }
 
+interface CachedReview {
+  id: string
+  ats_score: number
+  overall_feedback: string
+  strengths: string[]
+  weaknesses: string[]
+  suggestions: string[]
+  keywords_found: string[]
+  keywords_missing: string[]
+}
+
 // Função para obter uma revisão de CV em cache
-export async function getCachedReview(userId: string, cvText: string) {
-  const supabase = await createClient()
+export async function getCachedReview(userId: string, cvText: string): Promise<CachedReview | null> {
   const textHash = hashText(cvText.substring(0, 500))
 
-  const { data } = await supabase
-    .from('ai_reviews')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('text_hash', textHash)
-    .order('created_at', { ascending: false })
+  const snap = await adminDb
+    .collection('users').doc(userId).collection('aiReviews')
+    .where('text_hash', '==', textHash)
+    .orderBy('created_at', 'desc')
     .limit(1)
-    .single()
+    .get()
 
-  return data || null
+  if (snap.empty) return null
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as CachedReview
 }
 
 // Função para obter um plano de carreira em cache
 export async function getCachedCareerPlan(userId: string, currentPosition: string, targetRole: string) {
-  const supabase = await createClient()
-
-  const { data } = await supabase 
-    .from('career_plans') 
-    .select('*')
-    .eq('user_id', userId)
-    .eq('current_position', currentPosition || '')
-    .eq('target_role', targetRole)
-    .order('created_at', { ascending: false })
+  const snap = await adminDb
+    .collection('users').doc(userId).collection('careerPlans')
+    .where('current_position', '==', currentPosition || '')
+    .where('target_role', '==', targetRole)
+    .orderBy('created_at', 'desc')
     .limit(1)
-    .single()
+    .get()
 
-  return data || null
+  if (snap.empty) return null
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as Record<string, unknown>
 }

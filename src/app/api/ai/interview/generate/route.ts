@@ -1,12 +1,12 @@
 import { groq } from '@/lib/ai/groq'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/firebase/get-current-user'
+import { adminDb } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { interviewGenerateSystemPrompt, interviewGenerateUserPrompt } from '@/lib/ai/prompts/interview'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { allowed } = await checkRateLimit(user.id, '/api/ai/interview/generate')
@@ -34,22 +34,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erro ao processar resposta da AI' }, { status: 500 })
   }
 
-  const { data: session } = await supabase
-    .from('interview_sessions')
-    .insert({ user_id: user.id, job_title: jobTitle, company: company || null })
-    .select()
-    .single()
+  const docRef = await adminDb.collection('users').doc(user.id).collection('interviewSessions').add({
+    job_title: jobTitle,
+    company: company || null,
+    questions: data.questions.map((q: { question: string; category: string }) => ({
+      question: q.question,
+      category: q.category,
+    })),
+    created_at: new Date().toISOString(),
+  })
 
-  if (session) {
-    await supabase.from('interview_questions').insert(
-      data.questions.map((q: { question: string; category: string }, i: number) => ({
-        session_id: session.id,
-        question: q.question,
-        category: q.category,
-        order_index: i,
-      }))
-    )
-  }
-
-  return NextResponse.json({ questions: data.questions, sessionId: session?.id })
+  return NextResponse.json({ questions: data.questions, sessionId: docRef.id })
 }

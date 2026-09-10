@@ -1,21 +1,26 @@
-import { createClient } from '@/lib/supabase/server'
+import { adminDb } from '@/lib/firebase/admin'
 
 export default async function DashboardStats({ userId }: { userId: string }) {
-  const supabase = await createClient()
+  const userRef = adminDb.collection('users').doc(userId)
 
   const [
-    { count: cvsCount },
-    { data: reviews },
-    { count: applicationsCount },
-    { count: interviewsCount },
+    cvsCountSnap,
+    reviewsSnap,
+    applicationsCountSnap,
+    interviewsCountSnap,
   ] = await Promise.all([
-    supabase.from('cvs').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-    supabase.from('ai_reviews').select('ats_score').eq('user_id', userId).limit(100),
-    supabase.from('job_applications').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-    supabase.from('interview_sessions').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+    userRef.collection('cvs').count().get(),
+    userRef.collection('aiReviews').limit(100).get(),
+    userRef.collection('jobApplications').count().get(),
+    userRef.collection('interviewSessions').count().get(),
   ])
 
-  const averageAts = reviews && reviews.length > 0
+  const cvsCount = cvsCountSnap.data().count
+  const applicationsCount = applicationsCountSnap.data().count
+  const interviewsCount = interviewsCountSnap.data().count
+
+  const reviews = reviewsSnap.docs.map(d => d.data() as { ats_score?: number })
+  const averageAts = reviews.length > 0
     ? Math.round(reviews.reduce((acc, r) => acc + (r.ats_score || 0), 0) / reviews.length)
     : null
 

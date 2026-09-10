@@ -23,7 +23,7 @@ const faqs = [
   { question: 'O que é um score ATS?', answer: 'ATS (Applicant Tracking System) é o software que as empresas usam para filtrar CVs automaticamente. Um score alto significa que o teu CV passa esses filtros e chega a um humano.' },
   { question: 'A AI inventa informação no meu CV?', answer: 'Nunca. A nossa AI trabalha apenas com a informação que forneces, reorganizando e destacando o que já tens da melhor forma possível.' },
   { question: 'Posso exportar o meu CV em PDF?', answer: 'Sim, podes exportar o teu CV em PDF profissional com um clique, pronto para enviar a recrutadores.' },
-  { question: 'Os meus dados estão seguros?', answer: 'Sim. Usamos Supabase com Row Level Security, o que significa que apenas tu tens acesso aos teus dados.' },
+  { question: 'Os meus dados estão seguros?', answer: 'Sim. Usamos Firebase com regras de segurança dedicadas, o que significa que apenas tu tens acesso aos teus dados.' },
 ]
 
 export default function LandingPage() {

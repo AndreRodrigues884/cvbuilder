@@ -1,12 +1,12 @@
 import { groq } from '@/lib/ai/groq'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/firebase/get-current-user'
+import { adminDb } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { careerCopilotSystemPrompt, careerCopilotUserPrompt } from '@/lib/ai/prompts/career-copilot'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { allowed } = await checkRateLimit(user.id, '/api/ai/career-copilot')
@@ -34,14 +34,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erro ao processar resposta da AI' }, { status: 500 })
   }
 
-  await supabase.from('career_plans').insert({
-    user_id: user.id,
-    current_position: currentPosition || null,
+  await adminDb.collection('users').doc(user.id).collection('careerPlans').add({
+    current_position: currentPosition || '',
     target_role: targetRole,
     timeline_months: plan.timeline_months,
     skills_to_learn: plan.skills_to_learn.map((s: { skill: string }) => s.skill),
     certifications_recommended: plan.certifications.map((c: { name: string }) => c.name),
     action_plan: plan.action_plan,
+    created_at: new Date().toISOString(),
   })
 
   return NextResponse.json({ plan })

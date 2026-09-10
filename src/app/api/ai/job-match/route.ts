@@ -1,12 +1,12 @@
 import { groq } from '@/lib/ai/groq'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/firebase/get-current-user'
+import { adminDb } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { jobMatchSystemPrompt, jobMatchUserPrompt } from '@/lib/ai/prompts/job-match'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { allowed } = await checkRateLimit(user.id, '/api/ai/job-match')
@@ -34,20 +34,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erro ao processar resposta da AI' }, { status: 500 })
   }
 
-  const { data: jobMatch } = await supabase
-    .from('job_matches')
-    .insert({
-      user_id: user.id,
-      job_title: jobTitle,
-      job_description: jobDescription,
-      company: company || null,
-      match_score: analysis.match_score,
-      matched_keywords: analysis.matched_keywords,
-      missing_keywords: analysis.missing_keywords,
-      suggestions: analysis.suggestions,
-    })
-    .select()
-    .single()
+  const jobMatchData = {
+    job_title: jobTitle,
+    job_description: jobDescription,
+    company: company || null,
+    match_score: analysis.match_score,
+    matched_keywords: analysis.matched_keywords,
+    missing_keywords: analysis.missing_keywords,
+    suggestions: analysis.suggestions,
+    created_at: new Date().toISOString(),
+  }
+  const docRef = await adminDb.collection('users').doc(user.id).collection('jobMatches').add(jobMatchData)
+  const jobMatch = { id: docRef.id, ...jobMatchData }
 
   return NextResponse.json({ jobMatch, analysis })
 }

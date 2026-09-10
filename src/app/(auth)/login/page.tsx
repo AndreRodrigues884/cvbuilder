@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { getFirebaseAuth } from '@/lib/firebase/client'
+import { firebaseAuthErrorMessage } from '@/lib/firebase/auth-error'
 import { Sparkles, Mail, Lock, ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
@@ -16,9 +18,20 @@ export default function LoginPage() {
   async function handleLogin() {
     setLoading(true)
     setError('')
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { setError(error.message); setLoading(false); return }
+    try {
+      const credential = await signInWithEmailAndPassword(getFirebaseAuth(), email, password)
+      const idToken = await credential.user.getIdToken()
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      })
+      if (!res.ok) throw new Error('session')
+    } catch (err) {
+      setError(firebaseAuthErrorMessage(err))
+      setLoading(false)
+      return
+    }
     router.push('/dashboard')
     router.refresh()
   }

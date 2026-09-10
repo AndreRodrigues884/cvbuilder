@@ -17,11 +17,11 @@ Plataforma full-stack de criação e otimização de CVs com inteligência artif
 
 | Camada | Tecnologia |
 |---|---|
-| Frontend | Next.js 15 (App Router) + TypeScript |
+| Frontend | Next.js 16 (App Router) + TypeScript |
 | Estilo | Tailwind CSS + shadcn/ui |
-| Backend | Next.js API Routes + Server Actions |
-| Base de dados | Supabase (PostgreSQL) |
-| Autenticação | Supabase Auth |
+| Backend | Next.js API Routes |
+| Base de dados | Firebase (Firestore) |
+| Autenticação | Firebase Auth |
 | AI | Groq API (llama-3.3-70b-versatile) |
 | PDF Geração | Puppeteer |
 | PDF Extração | pdf2json |
@@ -33,7 +33,7 @@ Plataforma full-stack de criação e otimização de CVs com inteligência artif
 ### Pré-requisitos
 
 - Node.js 18+
-- Conta no [Supabase](https://supabase.com)
+- Conta no [Firebase](https://firebase.google.com)
 - Conta no [Groq](https://console.groq.com)
 
 ### 1. Clonar o repositório
@@ -54,9 +54,18 @@ npm install
 Cria um ficheiro `.env.local` na raiz do projeto:
 
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=xxxx
+# Firebase (client)
+NEXT_PUBLIC_FIREBASE_API_KEY=xxxx
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=xxxx.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=xxxx
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=xxxx.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=xxxx
+NEXT_PUBLIC_FIREBASE_APP_ID=xxxx
+
+# Firebase Admin (server, secreto)
+FIREBASE_PROJECT_ID=xxxx
+FIREBASE_CLIENT_EMAIL=xxxx@xxxx.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 
 # Groq AI
 GROQ_API_KEY=xxxx
@@ -65,9 +74,16 @@ GROQ_API_KEY=xxxx
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-### 4. Configurar a base de dados
+### 4. Configurar o Firebase
 
-No painel do Supabase, vai ao **SQL Editor** e corre os scripts de criação de tabelas disponíveis em `/docs/schema.sql` (ou cria manualmente as tabelas descritas abaixo).
+No [Firebase Console](https://console.firebase.google.com):
+
+1. Cria um projeto novo.
+2. **Authentication** → Sign-in method → ativa **Email/Password**.
+3. **Firestore Database** → cria a base de dados (modo Native).
+4. **Regras** → cola o conteúdo de `firestore.rules` deste repo.
+5. **Project Settings** → General → "Your apps" → regista uma Web App para obteres os 6 valores `NEXT_PUBLIC_FIREBASE_*`.
+6. **Project Settings** → Service Accounts → Generate new private key → obtém os 3 valores `FIREBASE_*` (admin).
 
 ### 5. Iniciar o servidor de desenvolvimento
 
@@ -77,22 +93,18 @@ npm run dev
 
 Abre [http://localhost:3000](http://localhost:3000) no browser.
 
-## 🗄️ Estrutura da Base de Dados
+## 🗄️ Estrutura da Base de Dados (Firestore)
 
-- `profiles` — Perfis dos utilizadores
-- `cvs` — CVs criados
-- `cv_experiences` — Experiências profissionais
-- `cv_education` — Formação académica
-- `cv_skills` — Skills
-- `cv_languages` — Línguas
-- `cv_projects` — Projetos pessoais
-- `cv_certifications` — Certificações
-- `ai_reviews` — Resultados das análises AI
-- `job_matches` — Resultados dos job matches
-- `career_plans` — Planos de carreira
-- `interview_sessions` — Sessões de entrevista
-- `interview_questions` — Perguntas e respostas de entrevista
-- `job_applications` — Tracking de candidaturas
+Todas as coleções vivem sob `users/{uid}/...` — o próprio caminho garante que cada utilizador só acede aos seus dados.
+
+- `users/{uid}` — Perfil do utilizador
+- `users/{uid}/cvs/{cvId}` — CVs criados, com `experiences`, `education`, `skills`, `languages`, `projects` e `certifications` embutidos como arrays
+- `users/{uid}/aiReviews/{id}` — Resultados das análises AI
+- `users/{uid}/jobMatches/{id}` — Resultados dos job matches
+- `users/{uid}/careerPlans/{id}` — Planos de carreira
+- `users/{uid}/interviewSessions/{id}` — Sessões de entrevista, com `questions` embutido
+- `users/{uid}/jobApplications/{id}` — Tracking de candidaturas
+- `users/{uid}/rateLimits/{endpoint}` — Contadores de rate limit por endpoint AI
 
 ## 📁 Estrutura do Projeto
 
@@ -109,7 +121,7 @@ src/
 ├── lib/
 │   ├── ai/              # Cliente Groq e prompts
 │   ├── pdf/             # Extração e geração de PDFs
-│   └── supabase/        # Clientes Supabase
+│   └── firebase/        # Clientes Firebase (client, admin, getCurrentUser)
 ├── store/               # Estado global (Zustand)
 └── types/               # TypeScript types
 ```
@@ -118,8 +130,15 @@ src/
 
 | Variável | Descrição |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave pública do Supabase |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Chave pública do projeto Firebase |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Domínio de auth do Firebase |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | ID do projeto Firebase |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Bucket de storage do Firebase |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Sender ID do Firebase |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | App ID do Firebase |
+| `FIREBASE_PROJECT_ID` | ID do projeto (Admin SDK, secreto) |
+| `FIREBASE_CLIENT_EMAIL` | Email da service account (Admin SDK, secreto) |
+| `FIREBASE_PRIVATE_KEY` | Chave privada da service account (Admin SDK, secreto) |
 | `GROQ_API_KEY` | Chave da API Groq |
 | `NEXT_PUBLIC_APP_URL` | URL da aplicação |
 

@@ -1,13 +1,13 @@
 import { groq } from '@/lib/ai/groq'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/firebase/get-current-user'
+import { adminDb } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { getCachedReview } from '@/lib/ai/cache'
 import { reviewSystemPrompt, reviewUserPrompt } from '@/lib/ai/prompts/review'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { allowed } = await checkRateLimit(user.id, '/api/ai/review')
@@ -67,22 +67,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erro ao processar resposta da AI' }, { status: 500 })
   }
 
-  const { data: review } = await supabase
-    .from('ai_reviews')
-    .insert({
-      user_id: user.id,
-      cv_id: null,
-      text_hash: textHash,
-      ats_score: analysis.ats_score,
-      overall_feedback: analysis.overall_feedback,
-      strengths: analysis.strengths,
-      weaknesses: analysis.weaknesses,
-      suggestions: analysis.suggestions,
-      keywords_found: analysis.keywords_found,
-      keywords_missing: analysis.keywords_missing,
-    })
-    .select()
-    .single()
+  const reviewData = {
+    cv_id: null,
+    text_hash: textHash,
+    ats_score: analysis.ats_score,
+    overall_feedback: analysis.overall_feedback,
+    strengths: analysis.strengths,
+    weaknesses: analysis.weaknesses,
+    suggestions: analysis.suggestions,
+    keywords_found: analysis.keywords_found,
+    keywords_missing: analysis.keywords_missing,
+    created_at: new Date().toISOString(),
+  }
+  const docRef = await adminDb.collection('users').doc(user.id).collection('aiReviews').add(reviewData)
+  const review = { id: docRef.id, ...reviewData }
 
   return NextResponse.json({ review, analysis })
 }

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Save, Loader2 } from 'lucide-react'
 
 interface Profile {
@@ -26,15 +25,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function fetchProfile() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+      const res = await fetch('/api/profile')
+      const { profile: data } = await res.json()
 
       if (data) {
         setProfile({
@@ -53,20 +45,17 @@ export default function ProfilePage() {
   async function handleSave() {
     setSaving(true)
     setSuccess(false)
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
 
-    await supabase
-      .from('profiles')
-      .update({
+    await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         full_name: profile.full_name,
         current_job_title: profile.current_job_title,
         target_job_title: profile.target_job_title,
         years_of_experience: profile.years_of_experience,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id)
+      }),
+    })
 
     setSaving(false)
     setSuccess(true)

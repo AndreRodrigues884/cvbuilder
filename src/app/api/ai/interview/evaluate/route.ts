@@ -1,12 +1,11 @@
 import { groq } from '@/lib/ai/groq'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/firebase/get-current-user'
 import { NextRequest, NextResponse } from 'next/server'
 import { interviewEvaluateSystemPrompt, interviewEvaluateUserPrompt } from '@/lib/ai/prompts/interview'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { allowed } = await checkRateLimit(user.id, '/api/ai/interview/evaluate')

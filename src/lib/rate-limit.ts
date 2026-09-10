@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { adminDb } from '@/lib/firebase/admin'
+import { FieldValue } from 'firebase-admin/firestore'
 
 const LIMITS: Record<string, { requests: number; windowMinutes: number }> = {
   '/api/ai/review': { requests: 10, windowMinutes: 60 },
@@ -9,44 +10,34 @@ const LIMITS: Record<string, { requests: number; windowMinutes: number }> = {
   '/api/ai/parse-pdf': { requests: 20, windowMinutes: 60 },
 }
 
+function endpointSlug(endpoint: string): string {
+  return endpoint.replace(/[^a-zA-Z0-9]/g, '_')
+}
+
 export async function checkRateLimit(userId: string, endpoint: string): Promise<{ allowed: boolean; remaining: number }> {
   const limit = LIMITS[endpoint]
   if (!limit) return { allowed: true, remaining: 999 }
 
-  const supabase = await createClient()
-  const windowStart = new Date(Date.now() - limit.windowMinutes * 60 * 1000).toISOString()
+  const windowStart = Date.now() - limit.windowMinutes * 60 * 1000
+  const docRef = adminDb.collection('users').doc(userId).collection('rateLimits').doc(endpointSlug(endpoint))
 
-  // Busca pedidos na janela atual
-  const { data } = await supabase
-    .from('rate_limits')
-    .select('id, requests, window_start')
-    .eq('user_id', userId)
-    .eq('endpoint', endpoint)
-    .gte('window_start', windowStart)
-    .order('window_start', { ascending: false })
-    .limit(1)
-    .single()
+  // Transação: lê e escreve o contador atomicamente, evitando a race condition
+  // que o read-then-write direto do Supabase tinha.
+  return adminDb.runTransaction(async (tx) => {
+    const doc = await tx.get(docRef)
+    const data = doc.data() as { requests: number; window_start: number } | undefined
 
-  if (!data) {
-    // Primeiro pedido na janela
-    await supabase.from('rate_limits').insert({
-      user_id: userId,
-      endpoint,
-      requests: 1,
-      window_start: new Date().toISOString(),
-    })
-    return { allowed: true, remaining: limit.requests - 1 }
-  }
+    if (!data || data.window_start < windowStart) {
+      // Primeiro pedido na janela (ou janela anterior expirou)
+      tx.set(docRef, { requests: 1, window_start: Date.now(), updated_at: FieldValue.serverTimestamp() })
+      return { allowed: true, remaining: limit.requests - 1 }
+    }
 
-  if (data.requests >= limit.requests) {
-    return { allowed: false, remaining: 0 }
-  }
+    if (data.requests >= limit.requests) {
+      return { allowed: false, remaining: 0 }
+    }
 
-  // Incrementa o contador
-  await supabase
-    .from('rate_limits')
-    .update({ requests: data.requests + 1 })
-    .eq('id', data.id)
-
-  return { allowed: true, remaining: limit.requests - data.requests - 1 }
+    tx.update(docRef, { requests: data.requests + 1, updated_at: FieldValue.serverTimestamp() })
+    return { allowed: true, remaining: limit.requests - data.requests - 1 }
+  })
 }

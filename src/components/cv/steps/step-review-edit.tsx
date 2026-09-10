@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCVStore } from '@/store/cv-store'
-import { createClient } from '@/lib/supabase/client'
 
 export default function StepReviewEdit({ cvId }: { cvId: string }) {
   const { cvData, setStep, reset } = useCVStore()
@@ -11,116 +10,17 @@ export default function StepReviewEdit({ cvId }: { cvId: string }) {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  function formatDate(date: string | null | undefined): string | null {
-    if (!date) return null
-    if (date.length === 7) return `${date}-01`
-    return date
-  }
-
   async function handleSave() {
     setLoading(true)
     setError('')
-    const supabase = createClient()
 
-    const { error: cvError } = await supabase
-      .from('cvs')
-      .update({
-        title: cvData.title,
-        full_name: cvData.full_name,
-        email: cvData.email,
-        phone: cvData.phone,
-        location: cvData.location,
-        linkedin_url: cvData.linkedin_url,
-        github_url: cvData.github_url,
-        portfolio_url: cvData.portfolio_url,
-        summary: cvData.summary,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', cvId)
+    const res = await fetch(`/api/cv/${cvId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cvData),
+    })
 
-    if (cvError) { setError('Erro ao guardar CV'); setLoading(false); return }
-
-    // Apaga secções antigas
-    await Promise.all([
-      supabase.from('cv_experiences').delete().eq('cv_id', cvId),
-      supabase.from('cv_education').delete().eq('cv_id', cvId),
-      supabase.from('cv_skills').delete().eq('cv_id', cvId),
-      supabase.from('cv_languages').delete().eq('cv_id', cvId),
-      supabase.from('cv_projects').delete().eq('cv_id', cvId),
-      supabase.from('cv_certifications').delete().eq('cv_id', cvId),
-    ])
-
-    // Reinsere sem IDs
-    await Promise.all([
-      cvData.experiences.length > 0 && supabase.from('cv_experiences').insert(
-        cvData.experiences.map((e, i) => ({
-          cv_id: cvId,
-          company: e.company,
-          job_title: e.job_title,
-          location: e.location,
-          start_date: formatDate(e.start_date),
-          end_date: formatDate(e.end_date),
-          is_current: e.is_current,
-          description: e.description,
-          achievements: e.achievements,
-          order_index: i,
-        }))
-      ),
-      cvData.education.length > 0 && supabase.from('cv_education').insert(
-        cvData.education.map((e, i) => ({
-          cv_id: cvId,
-          institution: e.institution,
-          degree: e.degree,
-          field_of_study: e.field_of_study,
-          start_date: formatDate(e.start_date),
-          end_date: formatDate(e.end_date),
-          is_current: e.is_current,
-          grade: e.grade,
-          order_index: i,
-        }))
-      ),
-      cvData.skills.length > 0 && supabase.from('cv_skills').insert(
-        cvData.skills.map((s, i) => ({
-          cv_id: cvId,
-          name: s.name,
-          level: s.level,
-          category: s.category,
-          order_index: i,
-        }))
-      ),
-      cvData.languages.length > 0 && supabase.from('cv_languages').insert(
-        cvData.languages.map((l, i) => ({
-          cv_id: cvId,
-          language: l.language,
-          level: l.level,
-          order_index: i,
-        }))
-      ),
-      cvData.projects.length > 0 && supabase.from('cv_projects').insert(
-        cvData.projects.map((p, i) => ({
-          cv_id: cvId,
-          name: p.name,
-          description: p.description,
-          technologies: p.technologies,
-          url: p.url,
-          github_url: p.github_url,
-          start_date: formatDate(p.start_date),
-          end_date: formatDate(p.end_date),
-          order_index: i,
-        }))
-      ),
-      cvData.certifications.length > 0 && supabase.from('cv_certifications').insert(
-        cvData.certifications.map((c, i) => ({
-          cv_id: cvId,
-          name: c.name,
-          issuer: c.issuer,
-          issue_date: formatDate(c.issue_date),
-          expiry_date: formatDate(c.expiry_date),
-          credential_url: c.credential_url,
-          order_index: i,
-        }))
-      ),
-    ])
+    if (!res.ok) { setError('Erro ao guardar CV'); setLoading(false); return }
 
     reset()
     router.push('/cv')

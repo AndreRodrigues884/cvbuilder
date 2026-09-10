@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/firebase/get-current-user'
+import { adminDb } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import puppeteer from 'puppeteer'
 import type { Experience, Education, Skill, Language } from '@/types/cv'
@@ -28,27 +29,20 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const [
-    { data: cv },
-    { data: experiences },
-    { data: education },
-    { data: skills },
-    { data: languages },
-  ] = await Promise.all([
-    supabase.from('cvs').select('*').eq('id', id).eq('user_id', user.id).single(),
-    supabase.from('cv_experiences').select('*').eq('cv_id', id).order('order_index'),
-    supabase.from('cv_education').select('*').eq('cv_id', id).order('order_index'),
-    supabase.from('cv_skills').select('*').eq('cv_id', id).order('order_index'),
-    supabase.from('cv_languages').select('*').eq('cv_id', id).order('order_index'),
-  ])
+  const doc = await adminDb.collection('users').doc(user.id).collection('cvs').doc(id).get()
+  if (!doc.exists) return NextResponse.json({ error: 'CV not found' }, { status: 404 })
 
-  if (!cv) return NextResponse.json({ error: 'CV not found' }, { status: 404 })
+  const cv = doc.data() as CVRecord & {
+    experiences: Experience[]
+    education: Education[]
+    skills: Skill[]
+    languages: Language[]
+  }
 
-  const html = generateCVHtml({ cv, experiences, education, skills, languages })
+  const html = generateCVHtml({ cv, experiences: cv.experiences, education: cv.education, skills: cv.skills, languages: cv.languages })
 
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] })
   const page = await browser.newPage()

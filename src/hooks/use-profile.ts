@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useProfileStore } from '@/store/profile-store'
 
 export function useProfile() {
@@ -11,16 +10,9 @@ export function useProfile() {
     if (!isStale()) return // usa cache se não está stale
 
     async function fetchProfile() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
+      const res = await fetch('/api/profile')
+      if (!res.ok) return
+      const { profile: data } = await res.json()
       if (data) setProfile(data)
     }
 

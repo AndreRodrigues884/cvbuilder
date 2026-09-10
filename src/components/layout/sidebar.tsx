@@ -8,7 +8,8 @@ import {
   Briefcase, Compass, MessageSquare,
   ClipboardList, LogOut, Sparkles, UserCircle, Menu, X
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { signOut } from 'firebase/auth'
+import { getFirebaseAuth } from '@/lib/firebase/client'
 import { useProfile } from '@/hooks/use-profile'
 import { useProfileStore } from '@/store/profile-store'
 
@@ -134,8 +135,8 @@ export default function Sidebar() {
   const { clearProfile } = useProfileStore()
 
   async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    await signOut(getFirebaseAuth())
+    await fetch('/api/auth/session', { method: 'DELETE' })
     clearProfile()
     window.location.href = '/login'
   }
