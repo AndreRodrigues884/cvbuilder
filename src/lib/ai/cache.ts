@@ -1,7 +1,7 @@
 import { adminDb } from '@/lib/firebase/admin'
 
 // Gera um hash simples do texto para comparação
-function hashText(text: string): string {
+export function hashText(text: string): string {
   let hash = 0
   for (let i = 0; i < text.length; i++) {
     const char = text.charCodeAt(i)
@@ -23,8 +23,10 @@ interface CachedReview {
 }
 
 // Função para obter uma revisão de CV em cache
-export async function getCachedReview(userId: string, cvText: string): Promise<CachedReview | null> {
-  const textHash = hashText(cvText.substring(0, 500))
+// jobContext entra no hash para que uma vaga diferente (título/descrição)
+// nunca reaproveite a análise de outra, mesmo com o mesmo texto de CV.
+export async function getCachedReview(userId: string, cvText: string, jobContext: string): Promise<CachedReview | null> {
+  const textHash = hashText(cvText.substring(0, 500) + '|' + jobContext)
 
   const snap = await adminDb
     .collection('users').doc(userId).collection('aiReviews')

@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/firebase/get-current-user'
 import { adminDb } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { getCachedReview } from '@/lib/ai/cache'
+import { getCachedReview, hashText } from '@/lib/ai/cache'
 import { reviewSystemPrompt, reviewUserPrompt } from '@/lib/ai/prompts/review'
 
 export async function POST(req: NextRequest) {
@@ -26,11 +26,11 @@ export async function POST(req: NextRequest) {
     ? `\n\nVaga a que se candidata: ${jobTitle || ''}${jobDescription ? `\nDescrição: ${jobDescription}` : ''}`
     : ''
 
-  const textHash = cleanedText.substring(0, 500).split('').reduce((hash: number, char: string) => {
-    return ((hash << 5) - hash) + char.charCodeAt(0) | 0
-  }, 0).toString(36)
+  // O hash tem de incluir o jobContext — senão mudar só o título/descrição
+  // da vaga continua a devolver a análise em cache de outra vaga qualquer.
+  const textHash = hashText(cleanedText.substring(0, 500) + '|' + jobContext)
 
-  const cached = await getCachedReview(user.id, cleanedText)
+  const cached = await getCachedReview(user.id, cleanedText, jobContext)
   if (cached) {
     console.log('Cache HIT — a devolver resultado guardado')
     return NextResponse.json({
