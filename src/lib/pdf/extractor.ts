@@ -1,17 +1,46 @@
+import PDFParser from 'pdf2json'
 
-//Function to extract text from PDF file
-export async function extractTextFromPDF(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer()
-  const buffer = Buffer.from(arrayBuffer)
+/**
+ * Extrai o texto de um PDF localmente (sem custo, sem rate limit externo).
+ * Funciona para PDFs com camada de texto real (a esmagadora maioria dos CVs,
+ * exportados de Word/Google Docs/Canva/LaTeX/etc). Devolve string vazia em
+ * caso de erro ou PDF sem texto extraível (ex: digitalizado como imagem) —
+ * nesses casos o chamador deve recorrer ao OCR da Mistral como fallback.
+ */
+export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  return new Promise((resolve) => {
+    const pdfParser = new PDFParser()
 
-  // Extração simples de texto do PDF
-  const text = buffer.toString('utf-8')
-  
-  // Limpa caracteres não imprimíveis e extrai texto legível
-  const cleaned = text
-    .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+    pdfParser.on('pdfParser_dataError', () => resolve(''))
+    pdfParser.on('pdfParser_dataReady', (pdfData) => {
+      const raw = pdfData.Pages
+        .map((page) =>
+          page.Texts
+            .map((t) => t.R.map((r) => decodeText(r.T)).join(''))
+            .join(' ')
+        )
+        .join('\n')
 
-  return cleaned
+      const cleaned = raw
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+
+      resolve(cleaned)
+    })
+
+    try {
+      pdfParser.parseBuffer(buffer)
+    } catch {
+      resolve('')
+    }
+  })
+}
+
+function decodeText(text: string): string {
+  try {
+    return decodeURIComponent(text)
+  } catch {
+    return text
+  }
 }
