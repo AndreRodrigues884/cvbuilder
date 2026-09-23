@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!jobTitle) return NextResponse.json({ error: 'Missing jobTitle' }, { status: 400 })
 
   const { choices } = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
     messages: [
       { role: 'system', content: interviewGenerateSystemPrompt },
       { role: 'user', content: interviewGenerateUserPrompt(jobTitle, company) }

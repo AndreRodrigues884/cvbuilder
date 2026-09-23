@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!targetRole) return NextResponse.json({ error: 'Missing targetRole' }, { status: 400 })
 
   const { choices } = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
     messages: [
       { role: 'system', content: careerCopilotSystemPrompt },
       { role: 'user', content: careerCopilotUserPrompt(currentPosition, targetRole, yearsExperience, currentSkills) }
