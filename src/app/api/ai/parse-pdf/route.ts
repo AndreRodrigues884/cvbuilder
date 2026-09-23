@@ -7,6 +7,7 @@ import { extractTextFromPDF } from '@/lib/pdf/extractor'
 const mistral = new Mistral({ apiKey: process.env.MISTRAL_API_KEY! })
 
 const MIN_TEXT_LENGTH = 50
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB — um CV a sério nunca chega perto disto
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser()
@@ -16,11 +17,21 @@ export async function POST(req: NextRequest) {
   const file = formData.get('file') as File
   if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
 
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return NextResponse.json({ error: 'Ficheiro demasiado grande (máximo 5MB)' }, { status: 413 })
+  }
+
+  // Proteção contra abuso — aplica-se a todos os pedidos, mesmo os que só
+  // usam extração local (essa não gasta quota externa, mas continua a
+  // consumir CPU/memória da função serverless a cada pedido).
+  const { allowed: allowedLocal } = await checkRateLimit(user.id, '/api/ai/parse-pdf/local')
+  if (!allowedLocal) return NextResponse.json({ error: 'Limite de pedidos atingido. Tenta novamente em 1 hora.' }, { status: 429 })
+
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
 
-  // 1. Extração local primeiro — grátis e sem rate limit, funciona para a
-  // esmagadora maioria dos CVs (qualquer PDF com camada de texto real).
+  // 1. Extração local primeiro — grátis, funciona para a esmagadora maioria
+  // dos CVs (qualquer PDF com camada de texto real).
   const localText = await extractTextFromPDF(buffer)
   if (localText.length >= MIN_TEXT_LENGTH) {
     return NextResponse.json({ text: localText })

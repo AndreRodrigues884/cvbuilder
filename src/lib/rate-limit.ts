@@ -8,6 +8,11 @@ const LIMITS: Record<string, { requests: number; windowMinutes: number }> = {
   '/api/ai/interview/evaluate': { requests: 30, windowMinutes: 60 },
   '/api/ai/career-copilot': { requests: 5, windowMinutes: 60 },
   '/api/ai/parse-pdf': { requests: 20, windowMinutes: 60 },
+  // Proteção contra abuso, aplicada a todos os pedidos de parse-pdf (mesmo
+  // extração local, que não tem custo de API mas continua a gastar CPU/
+  // memória da função serverless). Mais generoso que o limite específico da
+  // Mistral acima, que só se aplica ao fallback de OCR.
+  '/api/ai/parse-pdf/local': { requests: 30, windowMinutes: 60 },
 }
 
 function endpointSlug(endpoint: string): string {
