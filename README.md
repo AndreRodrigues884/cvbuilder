@@ -2,6 +2,8 @@
 
 Plataforma full-stack de criação e otimização de CVs com inteligência artificial, destinada a pessoas em processo de procura de emprego.
 
+🔗 **[Ver demo ao vivo](https://cvbuilder-ten-lime.vercel.app)**
+
 ## ✨ Funcionalidades
 
 - **CV Builder** — Criação de CVs passo a passo com templates profissionais, incluindo experiência, educação, skills, línguas, projetos e certificações
@@ -22,9 +24,9 @@ Plataforma full-stack de criação e otimização de CVs com inteligência artif
 | Backend | Next.js API Routes |
 | Base de dados | Firebase (Firestore) |
 | Autenticação | Firebase Auth |
-| AI | Groq API (llama-3.3-70b-versatile) |
+| AI | Groq API (openai/gpt-oss-120b) |
 | PDF Geração | Puppeteer |
-| PDF Extração | pdf2json |
+| PDF Extração | pdf2json, com fallback para OCR via Mistral |
 | Estado global | Zustand |
 | Deploy | Vercel |
 
@@ -70,9 +72,14 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY----
 # Groq AI
 GROQ_API_KEY=xxxx
 
+# Mistral AI (fallback de OCR)
+MISTRAL_API_KEY=xxxx
+
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+> Também podes copiar `.env.example` para `.env.local` e preencher os valores.
 
 ### 4. Configurar o Firebase
 
@@ -140,6 +147,7 @@ src/
 | `FIREBASE_CLIENT_EMAIL` | Email da service account (Admin SDK, secreto) |
 | `FIREBASE_PRIVATE_KEY` | Chave privada da service account (Admin SDK, secreto) |
 | `GROQ_API_KEY` | Chave da API Groq |
+| `MISTRAL_API_KEY` | Chave da API Mistral (fallback de OCR no parse-pdf) |
 | `NEXT_PUBLIC_APP_URL` | URL da aplicação |
 
 ## 🚢 Deploy
@@ -153,7 +161,7 @@ O projeto está configurado para deploy no **Vercel**:
 
 ## 📝 Licença
 
-Este projeto foi desenvolvido para fins académicos e de aprendizagem.
+Distribuído sob a licença [MIT](LICENSE).
 
 ---
 
