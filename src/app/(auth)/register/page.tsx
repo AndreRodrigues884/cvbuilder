@@ -6,10 +6,12 @@ import Link from 'next/link'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { getFirebaseAuth } from '@/lib/firebase/client'
 import { firebaseAuthErrorMessage } from '@/lib/firebase/auth-error'
+import { useRedirectIfAuthenticated } from '@/hooks/use-redirect-if-authenticated'
 import { Sparkles, Mail, Lock, User, ArrowRight } from 'lucide-react'
 
 export default function RegisterPage() {
   const router = useRouter()
+  useRedirectIfAuthenticated()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

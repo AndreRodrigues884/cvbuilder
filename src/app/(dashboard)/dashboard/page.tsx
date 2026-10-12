@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/firebase/get-current-user'
 import { adminDb } from '@/lib/firebase/admin'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { FileText, Search, Briefcase, Compass, MessageSquare, ClipboardList, ArrowRight, TrendingUp } from 'lucide-react'
@@ -19,7 +20,8 @@ const quickActions = [
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
-  const profileDoc = await adminDb.collection('users').doc(user!.id).get()
+  if (!user) redirect('/login')
+  const profileDoc = await adminDb.collection('users').doc(user.id).get()
   const profile = profileDoc.data() as { full_name?: string; target_job_title?: string } | undefined
 
   const firstName = profile?.full_name?.split(' ')[0] || 'utilizador'
@@ -53,7 +55,7 @@ export default async function DashboardPage() {
 
       {/* Stats com Suspense */}
       <Suspense fallback={<DashboardStatsSkeleton />}>
-        <DashboardStats userId={user!.id} />
+        <DashboardStats userId={user.id} />
       </Suspense>
 
       {/* Quick Actions */}

@@ -10,7 +10,10 @@ export async function proxy(request: NextRequest) {
   let isAuthenticated = false
   if (sessionCookie) {
     try {
-      await adminAuth.verifySessionCookie(sessionCookie, true)
+      // Sem checkRevoked: verificação puramente local (assinatura + validade),
+      // sem chamada de rede extra à Firebase — mais rápido e sem este ponto de
+      // falha transitória extra a cada pedido.
+      await adminAuth.verifySessionCookie(sessionCookie)
       isAuthenticated = true
     } catch {
       isAuthenticated = false
